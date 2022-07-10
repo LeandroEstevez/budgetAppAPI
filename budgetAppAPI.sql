@@ -3,7 +3,7 @@ CREATE TABLE "users" (
   "hashed_password" varchar NOT NULL,
   "full_name" varchar NOT NULL,
   "email" varchar UNIQUE NOT NULL,
-  "total_expenses" decimal DEFAULT 0,
+  "total_expenses" decimal NOT NULL DEFAULT 0,
   "password_changed_at" timestamp NOT NULL DEFAULT '0001-01-01 00:00:00Z',
   "created_at" timestamp NOT NULL DEFAULT (now())
 );
@@ -13,7 +13,7 @@ CREATE TABLE "entries" (
   "owner" varchar NOT NULL,
   "name" varchar UNIQUE NOT NULL,
   "due_date" date NOT NULL,
-  "amount" decimal DEFAULT 0
+  "amount" decimal NOT NULL DEFAULT 0
 );
 
 CREATE INDEX ON "users" ("username");
