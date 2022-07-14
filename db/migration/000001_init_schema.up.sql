@@ -12,7 +12,7 @@ CREATE TABLE "entries" (
   "id" SERIAL PRIMARY KEY,
   "owner" varchar NOT NULL,
   "name" varchar UNIQUE NOT NULL,
-  "due_date" date NOT NULL,
+  "due_date" timestamptz NOT NULL,
   "amount" decimal NOT NULL DEFAULT 0
 );
 
