@@ -13,8 +13,8 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-func RandomFloat(min, max int64) float64 {
-	return float64(min +  rand.Int63n(max - min + 1)) + rand.Float64()
+func RandomInt(min, max int64) int64 {
+	return min + rand.Int63n(max - min + 1)
 }
 
 func RandomString(n int) string {
@@ -33,8 +33,8 @@ func RandomFullName() string {
 	return RandomString(6)
 }
 
-func RandomMoney() string {
-	return fmt.Sprintf("%f",RandomFloat(0, 1000))
+func RandomMoney() int64 {
+	return RandomInt(0, 1000)
 }
 
 func RandomEmail() string {
