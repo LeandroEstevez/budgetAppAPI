@@ -23,7 +23,7 @@ type CreateEntryParams struct {
 	Owner   string    `json:"owner"`
 	Name    string    `json:"name"`
 	DueDate time.Time `json:"due_date"`
-	Amount  string    `json:"amount"`
+	Amount  int64     `json:"amount"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
@@ -121,7 +121,7 @@ RETURNING id, owner, name, due_date, amount
 type UpdateEntryParams struct {
 	Owner  string `json:"owner"`
 	ID     int32  `json:"id"`
-	Amount string `json:"amount"`
+	Amount int64  `json:"amount"`
 }
 
 func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error) {

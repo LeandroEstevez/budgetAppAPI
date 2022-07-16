@@ -14,7 +14,7 @@ type Entry struct {
 	Name    string    `json:"name"`
 	DueDate time.Time `json:"due_date"`
 	// must be positive
-	Amount string `json:"amount"`
+	Amount int64 `json:"amount"`
 }
 
 type User struct {
@@ -22,7 +22,7 @@ type User struct {
 	HashedPassword    string    `json:"hashed_password"`
 	FullName          string    `json:"full_name"`
 	Email             string    `json:"email"`
-	TotalExpenses     string    `json:"total_expenses"`
+	TotalExpenses     int64     `json:"total_expenses"`
 	PasswordChangedAt time.Time `json:"password_changed_at"`
 	CreatedAt         time.Time `json:"created_at"`
 }

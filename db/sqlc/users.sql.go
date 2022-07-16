@@ -23,7 +23,7 @@ type CreateUserParams struct {
 	HashedPassword string `json:"hashed_password"`
 	FullName       string `json:"full_name"`
 	Email          string `json:"email"`
-	TotalExpenses  string `json:"total_expenses"`
+	TotalExpenses  int64  `json:"total_expenses"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -129,7 +129,7 @@ RETURNING username, hashed_password, full_name, email, total_expenses, password_
 
 type UpdateUserParams struct {
 	Username      string `json:"username"`
-	TotalExpenses string `json:"total_expenses"`
+	TotalExpenses int64  `json:"total_expenses"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
