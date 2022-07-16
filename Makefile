@@ -1,5 +1,8 @@
-postgres:
+newPostgres:
 	docker run --name postgresdb -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetdb -d postgres:latest
+
+postgres:
+	docker start postgresdb
 
 createdb:
 	docker exec -it postgresdb createdb --username=root --owner=root budgetdb
@@ -19,4 +22,4 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc
+.PHONY: newPostgres postgres createdb dropdb migrateup migratedown sqlc
