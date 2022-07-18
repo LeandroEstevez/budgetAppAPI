@@ -14,6 +14,11 @@ WHERE owner = $1;
 SELECT * FROM entries
 WHERE owner = $1 AND id = $2;
 
+-- name: GetEntryForUpdate :one
+SELECT * FROM entries
+WHERE owner = $1 AND id = $2
+FOR UPDATE;
+
 -- name: UpdateEntry :one
 UPDATE entries
 SET amount = $3

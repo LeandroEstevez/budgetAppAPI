@@ -12,11 +12,14 @@ import (
 
 const (
 	YYYYMMDD = "2006-01-02"
-	MadeUpDate = "2022-12-11"
 )
 
+func GetMadeUpDate(madeUpDate string) (time.Time, error)  {
+	return time.Parse(YYYYMMDD, madeUpDate)
+}
+
 func createRandomEntry(t *testing.T, user User) Entry {
-	date, err := time.Parse(YYYYMMDD, MadeUpDate)
+	date, err := GetMadeUpDate("2022-12-11")
 	require.NoError(t, err)
 	require.NotEmpty(t, date)
 

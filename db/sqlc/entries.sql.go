@@ -111,6 +111,30 @@ func (q *Queries) GetEntry(ctx context.Context, arg GetEntryParams) (Entry, erro
 	return i, err
 }
 
+const getEntryForUpdate = `-- name: GetEntryForUpdate :one
+SELECT id, owner, name, due_date, amount FROM entries
+WHERE owner = $1 AND id = $2
+FOR UPDATE
+`
+
+type GetEntryForUpdateParams struct {
+	Owner string `json:"owner"`
+	ID    int32  `json:"id"`
+}
+
+func (q *Queries) GetEntryForUpdate(ctx context.Context, arg GetEntryForUpdateParams) (Entry, error) {
+	row := q.db.QueryRowContext(ctx, getEntryForUpdate, arg.Owner, arg.ID)
+	var i Entry
+	err := row.Scan(
+		&i.ID,
+		&i.Owner,
+		&i.Name,
+		&i.DueDate,
+		&i.Amount,
+	)
+	return i, err
+}
+
 const updateEntry = `-- name: UpdateEntry :one
 UPDATE entries
 SET amount = $3

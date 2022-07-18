@@ -10,6 +10,11 @@ RETURNING *;
 SELECT * FROM users
 WHERE username = $1;
 
+-- name: GetUserForUpdate :one
+SELECT * FROM users
+WHERE username = $1
+FOR UPDATE;
+
 -- name: ListUsers :many
 SELECT * FROM users
 ORDER BY username
