@@ -13,7 +13,7 @@ WHERE username = $1;
 -- name: GetUserForUpdate :one
 SELECT * FROM users
 WHERE username = $1
-FOR UPDATE;
+FOR NO KEY UPDATE;
 
 -- name: ListUsers :many
 SELECT * FROM users

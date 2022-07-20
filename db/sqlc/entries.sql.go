@@ -124,7 +124,7 @@ func (q *Queries) GetEntry(ctx context.Context, arg GetEntryParams) (Entry, erro
 const getEntryForUpdate = `-- name: GetEntryForUpdate :one
 SELECT id, owner, name, due_date, amount FROM entries
 WHERE owner = $1 AND id = $2
-FOR UPDATE
+FOR NO KEY UPDATE
 `
 
 type GetEntryForUpdateParams struct {

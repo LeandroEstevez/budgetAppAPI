@@ -80,7 +80,7 @@ func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 const getUserForUpdate = `-- name: GetUserForUpdate :one
 SELECT username, hashed_password, full_name, email, total_expenses, password_changed_at, created_at FROM users
 WHERE username = $1
-FOR UPDATE
+FOR NO KEY UPDATE
 `
 
 func (q *Queries) GetUserForUpdate(ctx context.Context, username string) (User, error) {

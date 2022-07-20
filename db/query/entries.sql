@@ -17,7 +17,7 @@ WHERE owner = $1 AND id = $2;
 -- name: GetEntryForUpdate :one
 SELECT * FROM entries
 WHERE owner = $1 AND id = $2
-FOR UPDATE;
+FOR NO KEY UPDATE;
 
 -- name: UpdateEntry :one
 UPDATE entries
