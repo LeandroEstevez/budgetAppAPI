@@ -209,3 +209,24 @@ func (store *Store) DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParams) 
 
 	return result, err
 }
+
+// Updates the amount of an user and updates the total expense in the user
+func (store *Store) DeleteUserTx(ctx context.Context, username string) error {
+	err := store.execTx(ctx, func(q *Queries) error {
+		err := q.DeleteEntries(ctx, username)
+		if err != nil {
+			fmt.Println("Errorrrrrrr 1")
+			return err
+		}
+
+		err = q.DeleteUser(ctx, username)
+		if err != nil {
+			fmt.Println("Errorrrrrrr 2")
+			return err
+		}
+
+		return nil
+	})
+
+	return err
+}

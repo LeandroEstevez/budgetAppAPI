@@ -87,6 +87,30 @@ func TestDeleteEntry(t *testing.T) {
 	require.Empty(t, deletedEntry)
 }
 
+func TestDeleteEntries(t *testing.T) {
+	user := createRandomUser(t)
+	n := 5
+	entries := make([]Entry, n)
+
+	for i := 0; i < n; i++ {
+		entries = append(entries, createRandomEntry(t, user))
+	}
+
+	err := testQueries.DeleteEntries(context.Background(), user.Username)
+	require.NoError(t, err)
+
+	for i := 0; i < n; i++ {
+		getEntryParams := GetEntryParams {
+			Owner: user.Username,
+			ID: entries[i].ID,
+		}
+		deletedEntry, err := testQueries.GetEntry(context.Background(), getEntryParams)
+		require.Error(t, err)
+		require.EqualError(t, err, sql.ErrNoRows.Error())
+		require.Empty(t, deletedEntry)
+	}
+}
+
 func TestGetEntry(t *testing.T) {
 	user := createRandomUser(t)
 	entry := createRandomEntry(t, user)

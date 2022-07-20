@@ -28,3 +28,7 @@ RETURNING *;
 -- name: DeleteEntry :exec
 DELETE FROM entries
 WHERE id = $1;
+
+-- name: DeleteEntries :exec
+DELETE FROM entries
+WHERE owner = $1;
