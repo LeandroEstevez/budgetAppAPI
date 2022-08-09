@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomUser(t *testing.T) User {
+func CreateRandomUser(t *testing.T) User {
 	arg := CreateUserParams {
 		Username: util.RandomString(6),
 		HashedPassword: util.RandomString(3),
@@ -34,11 +34,11 @@ func createRandomUser(t *testing.T) User {
 }
 
 func TestCreateUser(t *testing.T) {
-	createRandomUser(t)
+	CreateRandomUser(t)
 }
 
 func TestGetUser(t *testing.T) {
-	newUser := createRandomUser(t)
+	newUser := CreateRandomUser(t)
 
 	user, err := testQueries.GetUser(context.Background(), newUser.Username)
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	userv1 := createRandomUser(t)
+	userv1 := CreateRandomUser(t)
 
 	arg := UpdateUserParams {
 		Username: userv1.Username,
@@ -71,7 +71,7 @@ func TestUpdateUser(t *testing.T) {
 }
 
 func TestDeleteUser(t *testing.T) {
-	newUser := createRandomUser(t)
+	newUser := CreateRandomUser(t)
 
 	err := testQueries.DeleteUser(context.Background(), newUser.Username)
 	require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestDeleteUser(t *testing.T) {
 
 func TestListUsers(t *testing.T) {
 	for i := 0; i < 10; i ++ {
-		createRandomUser(t)
+		CreateRandomUser(t)
 	}
 
 	arg := ListUsersParams {

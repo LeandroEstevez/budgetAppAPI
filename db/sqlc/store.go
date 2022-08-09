@@ -5,24 +5,35 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	_ "github.com/golang/mock/mockgen/model"
 )
 
 // Store gives all functions to execute db queries and transactions
-type Store struct {
+type Store interface {
+	Querier
+	AddEntryTx(ctx context.Context, arg AddEntryTxParams) (AddEntryTxResult, error)
+	DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParams) (DeleteEntryTxResult, error)
+	UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParams) (UpdateEntryTxResult, error)
+	DeleteUserTx(ctx context.Context, username string) error
+}
+
+// SQLStore provides all functions to execute SQL queries and transactions
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
 
 // Creates a new store
-func NewStore(db *sql.DB) *Store {
-	return &Store {
+func NewStore(db *sql.DB) Store {
+	return &SQLStore {
 		db: db,
 		Queries: New(db),
 	}
 }
 
 // executes a function within a db transaction
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -54,7 +65,7 @@ type AddEntryTxResult struct {
 }
 
 // Adds an entry and updates the total expense in the user
-func (store *Store) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (AddEntryTxResult, error) {
+func (store *SQLStore) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (AddEntryTxResult, error) {
 	var result AddEntryTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -107,7 +118,7 @@ type UpdateEntryTxResult struct {
 }
 
 // Updates the amount of an entry and updates the total expense in the user
-func (store *Store) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParams) (UpdateEntryTxResult, error) {
+func (store *SQLStore) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParams) (UpdateEntryTxResult, error) {
 	var result UpdateEntryTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -168,7 +179,7 @@ type DeleteEntryTxResult struct {
 }
 
 // Updates the amount of an entry and updates the total expense in the user
-func (store *Store) DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParams) (DeleteEntryTxResult, error) {
+func (store *SQLStore) DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParams) (DeleteEntryTxResult, error) {
 	var result DeleteEntryTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -211,7 +222,7 @@ func (store *Store) DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParams) 
 }
 
 // Updates the amount of an user and updates the total expense in the user
-func (store *Store) DeleteUserTx(ctx context.Context, username string) error {
+func (store *SQLStore) DeleteUserTx(ctx context.Context, username string) error {
 	err := store.execTx(ctx, func(q *Queries) error {
 		err := q.DeleteEntries(ctx, username)
 		if err != nil {

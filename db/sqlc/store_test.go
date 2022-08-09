@@ -13,7 +13,7 @@ import (
 func TestAddEntryTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	user := createRandomUser(t)
+	user := CreateRandomUser(t)
 
 	date, err := GetMadeUpDate("2022-12-11")
 	require.NoError(t, err)
@@ -44,7 +44,7 @@ func TestAddEntryTx(t *testing.T) {
 func TestUpdateEntryTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	user := createRandomUser(t)
+	user := CreateRandomUser(t)
 	entry := createRandomEntry(t, user)
 
 	amount := int64(10)
@@ -73,7 +73,7 @@ func TestUpdateEntryTx(t *testing.T) {
 func TestDeleteEntryTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	user := createRandomUser(t)
+	user := CreateRandomUser(t)
 	entry := createRandomEntry(t, user)
 
 	result, err := store.DeleteEntryTx(context.Background(), DeleteEntryTxParams {
@@ -94,7 +94,7 @@ func TestDeleteEntryTx(t *testing.T) {
 func TestDeleteUserTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	user := createRandomUser(t)
+	user := CreateRandomUser(t)
 	n := 5
 	entries := make([]Entry, n)
 
@@ -125,7 +125,7 @@ func TestDeleteUserTx(t *testing.T) {
 func TestConcurrentAddEntryTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	user := createRandomUser(t)
+	user := CreateRandomUser(t)
 
 	fmt.Println("Before >>", user.TotalExpenses)
 
@@ -183,7 +183,7 @@ func TestConcurrentAddEntryTx(t *testing.T) {
 func TestConcurrentUpdateEntryTx(t *testing.T) {
 	store := NewStore(testDB)
 
-	user := createRandomUser(t)
+	user := CreateRandomUser(t)
 	entry := createRandomEntry(t, user)
 	fmt.Println("Before >>", user.TotalExpenses)
 	fmt.Println("Before >>", entry.Amount)
