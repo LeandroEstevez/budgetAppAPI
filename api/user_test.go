@@ -111,6 +111,100 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestCreateUser(t *testing.T) {
+	user := createRandomUser()
+
+	arg := db.CreateUserParams {
+		Username: user.Username,
+		HashedPassword: "xyz",
+		FullName: user.FullName,
+		Email: user.Email,
+	}
+
+	testCases := []struct {
+		name string
+		arg db.CreateUserParams
+		buildStubs func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			arg: arg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					CreateUser(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(user, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchUser(t, recorder.Body, user)
+			},
+		},
+		{
+			name: "InvalidUsername",
+			arg: arg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					CreateUser(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InternalError",
+			arg: arg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					CreateUser(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.User{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			// start test server and send request
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			if tc.name == "InvalidUsername" {
+				tc.arg.Username = "xyz"
+			}
+
+			url := fmt.Sprintf("/user")
+			body, err := json.Marshal(tc.arg)
+			require.NoError(t, err)
+
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
+
 func createRandomUser() db.User {
 	return db.User {
 		Username: util.RandomString(6),
