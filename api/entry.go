@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -66,4 +67,28 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, "Success")
+}
+
+type getEntriesRequest struct {
+	Username       string `form:"username" binding:"required,min=6,max=10"`
+}
+
+func (server *Server) getEntries(ctx *gin.Context) {
+	var req getEntriesRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	entries, err := server.store.GetEntries(ctx, req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, entries)
 }
