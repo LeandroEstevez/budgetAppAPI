@@ -20,7 +20,7 @@ type createEntryRequest struct {
 	Amount  int64     `json:"amount" binding:"required,gt=0"`
 }
 
-func (server *Server) createEntry(ctx *gin.Context) {
+func (server *Server) addEntry(ctx *gin.Context) {
 	var req createEntryRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -33,40 +33,46 @@ func (server *Server) createEntry(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.CreateEntryParams {
-		Owner: req.Owner,
+	arg := db.AddEntryTxParams {
+		Username: req.Owner,
 		Name: req.Name,
 		DueDate: dueDate,
 		Amount: req.Amount,
 	}
 
-	entry, err := server.store.CreateEntry(ctx, arg)
+	entryResult, err := server.store.AddEntryTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, entry)
+	ctx.JSON(http.StatusOK, entryResult)
 }
 
 type deleteEntryRequest struct {
+	Owner   string    `json:"owner" binding:"required,min=6,max=10"`
 	ID  int32     `uri:"id" binding:"required,gt=0"`
 }
 
 func (server *Server) deleteEntry(ctx *gin.Context) {
 	var req deleteEntryRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
 
-	err := server.store.DeleteEntry(ctx, req.ID)
+	arg := db.DeleteEntryTxParams {
+		Username: req.Owner,
+		ID: req.ID,
+	}
+
+	deleteEntryResult, err := server.store.DeleteEntryTx(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, "Success")
+	ctx.JSON(http.StatusOK, deleteEntryResult)
 }
 
 type getEntriesRequest struct {

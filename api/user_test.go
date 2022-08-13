@@ -18,7 +18,7 @@ import (
 )
 
 func TestGetUser(t *testing.T) {
-	user := createRandomUser()
+	user := CreateRandomUser()
 
 	testCases := []struct {
 		name string
@@ -112,7 +112,7 @@ func TestGetUser(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	user := createRandomUser()
+	user := CreateRandomUser()
 
 	arg := db.CreateUserParams {
 		Username: user.Username,
@@ -205,7 +205,7 @@ func TestCreateUser(t *testing.T) {
 	}
 }
 
-func createRandomUser() db.User {
+func CreateRandomUser() db.User {
 	return db.User {
 		Username: util.RandomString(6),
 		HashedPassword: util.RandomString(3),

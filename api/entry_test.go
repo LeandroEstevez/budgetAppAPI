@@ -18,8 +18,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateEntry(t *testing.T) {
-	entry := createRandomEntry()
+func TestAddEntry(t *testing.T) {
+	user := CreateRandomUser()
+	entry := createRandomEntry(user)
+
+	entryResult := db.AddEntryTxResult {
+		Entry: entry,
+		User: user,
+	}
 
 	type CreateEntryParamsTest struct {
 		Owner   string    `json:"owner"`
@@ -35,8 +41,8 @@ func TestCreateEntry(t *testing.T) {
 		Amount: entry.Amount,
 	}
 
-	arg := db.CreateEntryParams {
-		Owner: entry.Owner,
+	arg := db.AddEntryTxParams {
+		Username: entry.Owner,
 		Name: entry.Name,
 		DueDate: entry.DueDate,
 		Amount: entry.Amount,
@@ -45,7 +51,7 @@ func TestCreateEntry(t *testing.T) {
 	testCases := []struct {
 		name string
 		reqArg CreateEntryParamsTest
-		arg db.CreateEntryParams
+		arg db.AddEntryTxParams
 		buildStubs func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -56,14 +62,14 @@ func TestCreateEntry(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					CreateEntry(gomock.Any(), gomock.Eq(arg)).
+					AddEntryTx(gomock.Any(), gomock.Eq(arg)).
 					Times(1).
-					Return(entry, nil)
+					Return(entryResult, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				// check http status code
 				require.Equal(t, http.StatusOK, recorder.Code)
-				requireBodyMatchEntry(t, recorder.Body, entry)
+				requireBodyMatchEntryResult(t, recorder.Body, entryResult)
 			},
 		},
 		{
@@ -73,7 +79,7 @@ func TestCreateEntry(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					CreateEntry(gomock.Any(), gomock.Any()).
+					AddEntryTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -88,7 +94,7 @@ func TestCreateEntry(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					CreateEntry(gomock.Any(), gomock.Any()).
+					AddEntryTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -103,9 +109,9 @@ func TestCreateEntry(t *testing.T) {
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					CreateEntry(gomock.Any(), gomock.Any()).
+					AddEntryTx(gomock.Any(), gomock.Any()).
 					Times(1).
-					Return(db.Entry{}, sql.ErrConnDone)
+					Return(db.AddEntryTxResult{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				// check http status code
@@ -148,36 +154,61 @@ func TestCreateEntry(t *testing.T) {
 }
 
 func TestDeleteEntry(t *testing.T) {
-	var id int32 = 10
+	user := CreateRandomUser()
+	entry := createRandomEntry(user)
+
+	type DeleteEntryParamsTest struct {
+		Owner   string    `json:"owner"`
+		ID int32 `json:"id"`
+	}
+
+	reqArg := DeleteEntryParamsTest {
+		Owner: entry.Owner,
+		ID: entry.ID,
+	}
+
+	arg := db.DeleteEntryTxParams {
+		Username: user.Username,
+		ID: entry.ID,
+	}
+
+	user.TotalExpenses = user.TotalExpenses - entry.Amount
+	result := db.DeleteEntryTxResult {
+		User: user,
+	}
 
 	testCases := []struct {
 		name string
-		id int32
+		reqArg DeleteEntryParamsTest
+		arg db.DeleteEntryTxParams
 		buildStubs func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "OK",
-			id: id,
+			reqArg: reqArg,
+			arg: arg,
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					DeleteEntry(gomock.Any(), gomock.Eq(id)).
+					DeleteEntryTx(gomock.Any(), gomock.Eq(arg)).
 					Times(1).
-					Return(nil)
+					Return(result, nil)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				// check http status code
 				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchDeletedEntryResult(t, recorder.Body, result)
 			},
 		},
 		{
 			name: "BadId",
-			id: -1,
+			reqArg: reqArg,
+			arg: arg,
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					DeleteEntry(gomock.Any(), gomock.Any()).
+					DeleteEntryTx(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
@@ -187,13 +218,14 @@ func TestDeleteEntry(t *testing.T) {
 		},
 		{
 			name: "InternalError",
-			id: id,
+			reqArg: reqArg,
+			arg: arg,
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
-					DeleteEntry(gomock.Any(), gomock.Eq(id)).
+					DeleteEntryTx(gomock.Any(), gomock.Eq(arg)).
 					Times(1).
-					Return(sql.ErrConnDone)
+					Return(db.DeleteEntryTxResult{}, sql.ErrConnDone)
 			},
 			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
 				// check http status code
@@ -216,8 +248,15 @@ func TestDeleteEntry(t *testing.T) {
 			server := NewServer(store)
 			recorder := httptest.NewRecorder()
 
-			url := fmt.Sprintf("/deleteEntry/%d", tc.id)
-			request, err := http.NewRequest(http.MethodDelete, url, nil)
+			if tc.name == "BadId" {
+				tc.reqArg.ID = -1
+			}
+
+			url := fmt.Sprintf("/deleteEntry")
+			body, err := json.Marshal(tc.reqArg)
+			require.NoError(t, err)
+
+			request, err := http.NewRequest(http.MethodDelete, url, bytes.NewBuffer(body))
 			require.NoError(t, err)
 
 			server.router.ServeHTTP(recorder, request)
@@ -227,10 +266,11 @@ func TestDeleteEntry(t *testing.T) {
 }
 
 func TestGetEntries(t *testing.T) {
+	user := CreateRandomUser()
 
 	var entries []db.Entry
 	for i := 0; i < 3; i++ {
-		entry := createRandomEntry()
+		entry := createRandomEntry(user)
 		entry.Owner = "JhonDoe"
 		entries = append(entries, entry)
 	}
@@ -343,17 +383,32 @@ func TestGetEntries(t *testing.T) {
 	}
 }
 
-func requireBodyMatchEntry(t *testing.T, body *bytes.Buffer, entry db.Entry) {
+func requireBodyMatchEntryResult(t *testing.T, body *bytes.Buffer, entryResult db.AddEntryTxResult) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)
 
-	var gotEntry db.Entry
+	var gotEntry db.AddEntryTxResult
 	err = json.Unmarshal(data, &gotEntry)
 	require.NoError(t, err)
-	require.Equal(t, entry.Name, gotEntry.Name)
-	require.Equal(t, entry.Owner, gotEntry.Owner)
-	require.Equal(t, entry.DueDate, gotEntry.DueDate)
-	require.Equal(t, entry.Amount, gotEntry.Amount)
+
+	require.Equal(t, entryResult.Entry.Name, gotEntry.Entry.Name)
+	require.Equal(t, entryResult.Entry.Owner, gotEntry.Entry.Owner)
+	require.Equal(t, entryResult.Entry.DueDate, gotEntry.Entry.DueDate)
+	require.Equal(t, entryResult.Entry.Amount, gotEntry.Entry.Amount)
+}
+
+func requireBodyMatchDeletedEntryResult(t *testing.T, body *bytes.Buffer, userResult db.DeleteEntryTxResult) {
+	data, err := ioutil.ReadAll(body)
+	require.NoError(t, err)
+
+	var gotUser db.DeleteEntryTxResult
+	err = json.Unmarshal(data, &gotUser)
+	require.NoError(t, err)
+
+	require.Equal(t, userResult.User.Username, gotUser.User.Username)
+	require.Equal(t, userResult.User.FullName, gotUser.User.FullName)
+	require.Equal(t, userResult.User.Email, gotUser.User.Email)
+	require.Equal(t, userResult.User.TotalExpenses, gotUser.User.TotalExpenses)
 }
 
 func requireBodyMatchEntries(t *testing.T, body *bytes.Buffer, entries []db.Entry) {
@@ -372,12 +427,12 @@ func requireBodyMatchEntries(t *testing.T, body *bytes.Buffer, entries []db.Entr
 	}
 }
 
-func createRandomEntry() db.Entry {
+func createRandomEntry(user db.User) db.Entry {
 	date, _ :=  time.Parse(YYYYMMDD, "2022-12-11")
 
 	return db.Entry {
 		ID: 95,
-		Owner: util.RandomString(6),
+		Owner: user.Username,
 		Name: util.RandomString(6),
 		DueDate: date,
 		Amount: 5,
