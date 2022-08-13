@@ -226,6 +226,123 @@ func TestDeleteEntry(t *testing.T) {
 	}
 }
 
+func TestGetEntries(t *testing.T) {
+
+	var entries []db.Entry
+	for i := 0; i < 3; i++ {
+		entry := createRandomEntry()
+		entry.Owner = "JhonDoe"
+		entries = append(entries, entry)
+	}
+
+	owner := entries[0].Owner
+
+	reqArg := struct{
+		username string
+	}{
+		username: owner,
+	}
+
+	testCases := []struct {
+		name string
+		owner string
+		reqArg struct{username string}
+		buildStubs func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			owner: owner,
+			reqArg: reqArg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					GetEntries(gomock.Any(), gomock.Eq(owner)).
+					Times(1).
+					Return(entries, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchEntries(t, recorder.Body, entries)
+			},
+		},
+		{
+			name: "BadRequest",
+			owner: owner,
+			reqArg: reqArg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					GetEntries(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "NotFound",
+			owner: owner,
+			reqArg: reqArg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					GetEntries(gomock.Any(), gomock.Any()).
+					Times(1).Return(nil, sql.ErrNoRows)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusNotFound, recorder.Code)
+			},
+		},
+		{
+			name: "InternalError",
+			owner: owner,
+			reqArg: reqArg,
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					GetEntries(gomock.Any(), gomock.Any()).
+					Times(1).Return(nil, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			// start test server and send request
+			server := NewServer(store)
+			recorder := httptest.NewRecorder()
+
+			if  tc.name == "BadRequest" {
+				tc.owner = "xyz"
+			}
+
+			url := fmt.Sprintf("/entries?username=%s", tc.owner)
+
+			request, err := http.NewRequest(http.MethodGet, url, nil)
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
+
 func requireBodyMatchEntry(t *testing.T, body *bytes.Buffer, entry db.Entry) {
 	data, err := ioutil.ReadAll(body)
 	require.NoError(t, err)
@@ -237,6 +354,22 @@ func requireBodyMatchEntry(t *testing.T, body *bytes.Buffer, entry db.Entry) {
 	require.Equal(t, entry.Owner, gotEntry.Owner)
 	require.Equal(t, entry.DueDate, gotEntry.DueDate)
 	require.Equal(t, entry.Amount, gotEntry.Amount)
+}
+
+func requireBodyMatchEntries(t *testing.T, body *bytes.Buffer, entries []db.Entry) {
+	data, err := ioutil.ReadAll(body)
+	require.NoError(t, err)
+
+	var gotEntries []db.Entry
+	err = json.Unmarshal(data, &gotEntries)
+	require.NoError(t, err)
+
+	for i := 0; i < 3; i++ {
+		require.Equal(t, entries[i].Name, gotEntries[i].Name)
+		require.Equal(t, entries[i].Owner, gotEntries[i].Owner)
+		require.Equal(t, entries[i].DueDate, gotEntries[i].DueDate)
+		require.Equal(t, entries[i].Amount, gotEntries[i].Amount)
+	}
 }
 
 func createRandomEntry() db.Entry {
