@@ -6,6 +6,7 @@ import (
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
 	"github.com/gin-gonic/gin"
+	"github.com/lib/pq"
 )
 
 type createUserRequest struct {
@@ -31,6 +32,12 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	user, err := server.store.CreateUser(ctx, arg)
 	if err != nil {
+		if pqError, ok := err.(*pq.Error); ok {
+			if pqError.Code.Name() == "users_pkey" {
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
