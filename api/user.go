@@ -5,14 +5,23 @@ import (
 	"net/http"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
+	"github.com/LeandroEstevez/budgetAppAPI/util"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 )
 
 type createUserRequest struct {
-	Username       string `json:"username" binding:"required,min=6,max=10"`
+	Username       string `json:"username" binding:"required,alphanum,min=6,max=10"`
 	FullName       string `json:"full_name" binding:"required,alphaunicode"`
 	Email          string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+type createUserResponse struct {
+	Username       string `json:"username"`
+	FullName       string `json:"full_name"`
+	Email          string `json:"email"`
+	TotalExpenses     int64     `json:"total_expenses"`
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -22,9 +31,15 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
+	hasedPassword, err := util.HashPassword(req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	arg := db.CreateUserParams {
 		Username: req.Username,
-		HashedPassword: "xyz",
+		HashedPassword: hasedPassword,
 		FullName: req.FullName,
 		Email: req.Email,
 		TotalExpenses: 0,
@@ -42,7 +57,14 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	rsp := createUserResponse {
+		Username: user.Username,
+		FullName: user.FullName,
+		Email: user.Email,
+		TotalExpenses: user.TotalExpenses,
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
 }
 
 type getUserRequest struct {
@@ -66,6 +88,13 @@ func (server *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	rsp := createUserResponse {
+		Username: user.Username,
+		FullName: user.FullName,
+		Email: user.Email,
+		TotalExpenses: user.TotalExpenses,
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
 }
 
