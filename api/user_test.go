@@ -99,7 +99,7 @@ func TestGetUser(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/user/%s", tc.username)
@@ -222,7 +222,7 @@ func TestCreateUser(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			if tc.name == "InvalidUsername" {

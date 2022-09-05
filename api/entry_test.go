@@ -131,7 +131,7 @@ func TestAddEntry(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			if tc.name == "InvalidOwner" {
@@ -245,7 +245,7 @@ func TestDeleteEntry(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			if tc.name == "BadId" {
@@ -365,7 +365,7 @@ func TestGetEntries(t *testing.T) {
 			tc.buildStubs(store)
 
 			// start test server and send request
-			server := NewServer(store)
+			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
 			if  tc.name == "BadRequest" {
