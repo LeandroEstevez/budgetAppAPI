@@ -2,9 +2,11 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
+	"github.com/LeandroEstevez/budgetAppAPI/token"
 	"github.com/LeandroEstevez/budgetAppAPI/util"
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
@@ -88,6 +90,13 @@ func (server *Server) getUser(ctx *gin.Context) {
 			return
 		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if user.Username != authPayload.Username {
+		err := errors.New("account doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
 		return
 	}
 

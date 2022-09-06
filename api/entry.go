@@ -6,6 +6,7 @@ import (
 	"time"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
+	"github.com/LeandroEstevez/budgetAppAPI/token"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +15,6 @@ const (
 )
 
 type createEntryRequest struct {
-	Owner   string    `json:"owner" binding:"required,min=6,max=10"`
 	Name    string    `json:"name" binding:"required,alphaunicode"`
 	DueDate string `json:"due_date" binding:"required" time_format:"2006-01-02"`
 	Amount  int64     `json:"amount" binding:"required,gt=0"`
@@ -33,8 +33,9 @@ func (server *Server) addEntry(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.AddEntryTxParams {
-		Username: req.Owner,
+		Username: authPayload.Username,
 		Name: req.Name,
 		DueDate: dueDate,
 		Amount: req.Amount,
@@ -50,7 +51,6 @@ func (server *Server) addEntry(ctx *gin.Context) {
 }
 
 type deleteEntryRequest struct {
-	Owner   string    `json:"owner" binding:"required,min=6,max=10"`
 	ID  int32     `uri:"id" binding:"required,gt=0"`
 }
 
@@ -61,8 +61,9 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.DeleteEntryTxParams {
-		Username: req.Owner,
+		Username: authPayload.Username,
 		ID: req.ID,
 	}
 
@@ -86,7 +87,8 @@ func (server *Server) getEntries(ctx *gin.Context) {
 		return
 	}
 
-	entries, err := server.store.GetEntries(ctx, req.Username)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	entries, err := server.store.GetEntries(ctx, authPayload.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
