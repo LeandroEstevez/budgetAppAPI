@@ -15,6 +15,7 @@ const (
 )
 
 type createEntryRequest struct {
+	Username       string `form:"username" binding:"required,min=6,max=10"`
 	Name    string    `json:"name" binding:"required,alphaunicode"`
 	DueDate string `json:"due_date" binding:"required" time_format:"2006-01-02"`
 	Amount  int64     `json:"amount" binding:"required,gt=0"`

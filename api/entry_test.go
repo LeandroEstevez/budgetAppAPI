@@ -13,6 +13,7 @@ import (
 
 	mockdb "github.com/LeandroEstevez/budgetAppAPI/db/mock"
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
+	"github.com/LeandroEstevez/budgetAppAPI/token"
 	"github.com/LeandroEstevez/budgetAppAPI/util"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -28,14 +29,14 @@ func TestAddEntry(t *testing.T) {
 	}
 
 	type CreateEntryParamsTest struct {
-		Owner   string    `json:"owner"`
+		Username   string    `json:"username"`
 		Name    string    `json:"name"`
 		DueDate string `json:"due_date"`
 		Amount  int64     `json:"amount"`
 	}
 
 	reqArg := CreateEntryParamsTest {
-		Owner: entry.Owner,
+		Username: entry.Owner,
 		Name: entry.Name,
 		DueDate: "2022-12-11",
 		Amount: entry.Amount,
@@ -52,6 +53,7 @@ func TestAddEntry(t *testing.T) {
 		name string
 		reqArg CreateEntryParamsTest
 		arg db.AddEntryTxParams
+		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -59,6 +61,9 @@ func TestAddEntry(t *testing.T) {
 			name: "OK",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -76,6 +81,9 @@ func TestAddEntry(t *testing.T) {
 			name: "InvalidOwner",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "xyz", time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -91,6 +99,9 @@ func TestAddEntry(t *testing.T) {
 			name: "InvalidDate",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -106,6 +117,9 @@ func TestAddEntry(t *testing.T) {
 			name: "InternalError",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -135,7 +149,7 @@ func TestAddEntry(t *testing.T) {
 			recorder := httptest.NewRecorder()
 
 			if tc.name == "InvalidOwner" {
-				tc.reqArg.Owner = "xyz"
+				tc.reqArg.Username = "xyz"
 			} else if tc.name == "InvalidDate" {
 				tc.reqArg.DueDate = "2008-14-14"
 			}
@@ -147,6 +161,7 @@ func TestAddEntry(t *testing.T) {
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
@@ -181,6 +196,7 @@ func TestDeleteEntry(t *testing.T) {
 		name string
 		reqArg DeleteEntryParamsTest
 		arg db.DeleteEntryTxParams
+		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -188,6 +204,9 @@ func TestDeleteEntry(t *testing.T) {
 			name: "OK",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -205,6 +224,9 @@ func TestDeleteEntry(t *testing.T) {
 			name: "BadId",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -220,6 +242,9 @@ func TestDeleteEntry(t *testing.T) {
 			name: "InternalError",
 			reqArg: reqArg,
 			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -259,6 +284,7 @@ func TestDeleteEntry(t *testing.T) {
 			request, err := http.NewRequest(http.MethodDelete, url, bytes.NewBuffer(body))
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
@@ -271,7 +297,7 @@ func TestGetEntries(t *testing.T) {
 	var entries []db.Entry
 	for i := 0; i < 3; i++ {
 		entry := createRandomEntry(user)
-		entry.Owner = "JhonDoe"
+		entry.Owner = user.Username
 		entries = append(entries, entry)
 	}
 
@@ -287,6 +313,7 @@ func TestGetEntries(t *testing.T) {
 		name string
 		owner string
 		reqArg struct{username string}
+		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
@@ -294,6 +321,9 @@ func TestGetEntries(t *testing.T) {
 			name: "OK",
 			owner: owner,
 			reqArg: reqArg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -311,6 +341,9 @@ func TestGetEntries(t *testing.T) {
 			name: "BadRequest",
 			owner: owner,
 			reqArg: reqArg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -326,6 +359,9 @@ func TestGetEntries(t *testing.T) {
 			name: "NotFound",
 			owner: owner,
 			reqArg: reqArg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -341,6 +377,9 @@ func TestGetEntries(t *testing.T) {
 			name: "InternalError",
 			owner: owner,
 			reqArg: reqArg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				// build stub
 				store.EXPECT().
@@ -377,6 +416,7 @@ func TestGetEntries(t *testing.T) {
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
+			tc.setupAuth(t, request, server.tokenMaker)
 			server.router.ServeHTTP(recorder, request)
 			tc.checkResponse(t, recorder)
 		})
