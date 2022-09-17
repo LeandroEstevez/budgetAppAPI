@@ -1,5 +1,5 @@
 newPostgres:
-	docker run --name postgresdb -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetdb -d postgres:latest
+	docker run --name postgresdb --network budgetapi-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetdb -d postgres:latest
 
 postgres:
 	docker start postgresdb
