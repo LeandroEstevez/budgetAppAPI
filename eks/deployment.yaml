@@ -17,5 +17,6 @@ spec:
       containers:
         - name: budgetapi
           image: 292867221620.dkr.ecr.us-east-2.amazonaws.com/budgetapi:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
