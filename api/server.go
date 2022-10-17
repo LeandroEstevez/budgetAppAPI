@@ -6,7 +6,6 @@ import (
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
 	"github.com/LeandroEstevez/budgetAppAPI/token"
 	"github.com/LeandroEstevez/budgetAppAPI/util"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,10 +36,10 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setUpRouter() {
 	router := gin.Default()
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"*"}
-	corsConfig.AllowCredentials = true
-	router.Use(cors.New(corsConfig))
+	// corsConfig := cors.DefaultConfig()
+	// corsConfig.AllowOrigins = []string{"*"}
+	// corsConfig.AllowCredentials = true
+	// router.Use(cors.New(corsConfig))
 
 	router.POST("/user", server.createUser)
 	router.POST("/user/login", server.logInUser)
