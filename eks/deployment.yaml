@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: budgetapi-deployment
+  labels:
+    app: budgetapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: budgetapi
+  template:
+    metadata:
+      labels:
+        app: budgetapi
+    spec:
+      containers:
+        - name: budgetapi
+          image: 292867221620.dkr.ecr.us-east-2.amazonaws.com/budgetapi:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
