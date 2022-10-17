@@ -36,7 +36,7 @@ func newUserResponse(user db.User) userResponse {
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
-	ctx.Header("Access-Control-Allow-Origin", "http://localhost:3001")
+	ctx.Header("Access-Control-Allow-Origin", "*")
 	ctx.Header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS")
 
 	var req createUserRequest
