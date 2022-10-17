@@ -3,7 +3,6 @@ package api
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
@@ -38,11 +37,10 @@ func newUserResponse(user db.User) userResponse {
 
 func (server *Server) createUser(ctx *gin.Context) {
 	ctx.Header("Access-Control-Allow-Credentials", "true")
-	ctx.Header("Access-Control-Allow-Origin", "*")
+	ctx.Header("Access-Control-Allow-Origin", "http://localhost:3001")
 
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		fmt.Println(req)
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
