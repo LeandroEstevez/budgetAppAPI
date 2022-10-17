@@ -66,6 +66,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 				return
 			}
 		}
+		ctx.Header("Access-Control-Allow-Credentials", "true")
 		ctx.Header("Access-Control-Allow-Origin", "*")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
