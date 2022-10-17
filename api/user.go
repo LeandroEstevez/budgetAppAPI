@@ -37,6 +37,9 @@ func newUserResponse(user db.User) userResponse {
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
+	ctx.Header("Access-Control-Allow-Credentials", "true")
+	ctx.Header("Access-Control-Allow-Origin", "*")
+
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		fmt.Println(req)
@@ -66,8 +69,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 				return
 			}
 		}
-		ctx.Header("Access-Control-Allow-Credentials", "true")
-		ctx.Header("Access-Control-Allow-Origin", "*")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
