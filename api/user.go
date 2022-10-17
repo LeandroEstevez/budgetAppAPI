@@ -36,11 +36,6 @@ func newUserResponse(user db.User) userResponse {
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
-	// ctx.Header("Access-Control-Allow-Origin", "*")
-	// ctx.Header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS")
-	ctx.Header("Access-Control-Allow-Origin", "*")
-  ctx.Header("Access-Control-Allow-Methods", "*")
-  ctx.Header("Access-Control-Allow-Headers", "*")
 
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
