@@ -13,7 +13,8 @@ CREATE TABLE "entries" (
   "owner" varchar NOT NULL,
   "name" varchar UNIQUE NOT NULL,
   "due_date" timestamptz NOT NULL,
-  "amount" bigint NOT NULL DEFAULT 0
+  "amount" bigint NOT NULL DEFAULT 0,
+  "category" varchar
 );
 
 CREATE INDEX ON "users" ("username");
