@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -14,7 +15,8 @@ type Entry struct {
 	Name    string    `json:"name"`
 	DueDate time.Time `json:"due_date"`
 	// must be positive
-	Amount int64 `json:"amount"`
+	Amount   int64          `json:"amount"`
+	Category sql.NullString `json:"category"`
 }
 
 type User struct {

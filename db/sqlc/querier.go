@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
@@ -14,6 +15,7 @@ type Querier interface {
 	DeleteEntries(ctx context.Context, owner string) error
 	DeleteEntry(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, username string) error
+	GetCategories(ctx context.Context) ([]sql.NullString, error)
 	GetEntries(ctx context.Context, owner string) ([]Entry, error)
 	GetEntry(ctx context.Context, arg GetEntryParams) (Entry, error)
 	GetEntryForUpdate(ctx context.Context, arg GetEntryForUpdateParams) (Entry, error)
