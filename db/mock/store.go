@@ -6,6 +6,7 @@ package mockdb
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
@@ -149,6 +150,21 @@ func (m *MockStore) DeleteUserTx(arg0 context.Context, arg1 string) error {
 func (mr *MockStoreMockRecorder) DeleteUserTx(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUserTx", reflect.TypeOf((*MockStore)(nil).DeleteUserTx), arg0, arg1)
+}
+
+// GetCategories mocks base method.
+func (m *MockStore) GetCategories(arg0 context.Context) ([]sql.NullString, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCategories", arg0)
+	ret0, _ := ret[0].([]sql.NullString)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCategories indicates an expected call of GetCategories.
+func (mr *MockStoreMockRecorder) GetCategories(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategories", reflect.TypeOf((*MockStore)(nil).GetCategories), arg0)
 }
 
 // GetEntries mocks base method.
