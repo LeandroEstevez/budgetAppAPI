@@ -1,20 +1,22 @@
+DB_URL=postgresql://root:budgetapidb@localhost:5432/budgetapidb?sslmode=disable
+
 newPostgres:
-	docker run --name postgresdb --network budgetapi-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetdb -d postgres:latest
+	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetapidb -d postgres:latest
 
 postgres:
-	docker start postgresdb
+	docker start postgres
 
 createdb:
-	docker exec -it postgresdb createdb --username=root --owner=root budgetdb
+	docker exec -it postgres createdb --username=root --owner=root budgetapidb
 
 dropdb:
-	docker exec -it postgresdb dropdb budgetdb
+	docker exec -it postgres dropdb budgetapidb
 
 migrateup:
-	migrate -path db/migration -database "postgresql://root:budgetdb@localhost:5432/budgetdb?sslmode=disable" -verbose up 1
+	migrate -path db/migration -database "$(DB_URL)" -verbose up 1
 
 migratedown:
-	migrate -path db/migration -database "postgresql://root:budgetdb@localhost:5432/budgetdb?sslmode=disable" -verbose down
+	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
 sqlc:
 	sqlc generate
@@ -28,4 +30,4 @@ server:
 mock:
 	mockgen -package mockdb -destination db/mock/store.go github.com/LeandroEstevez/budgetAppAPI/db/sqlc Store
 
-.PHONY: newPostgres postgres createdb dropdb migrateup migratedown sqlc server mock
+.PHONY: network newPostgres postgres createdb dropdb migrateup migratedown sqlc server mock
