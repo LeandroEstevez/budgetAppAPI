@@ -24,6 +24,7 @@ type userResponse struct {
 	FullName       string `json:"full_name"`
 	Email          string `json:"email"`
 	TotalExpenses     int64     `json:"total_expenses"`
+	AccessToken       string `json:"access_token"`
 }
 
 func newUserResponse(user db.User) userResponse {
@@ -36,6 +37,11 @@ func newUserResponse(user db.User) userResponse {
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
+	// ctx.Header("Access-Control-Allow-Origin", "*")
+	// ctx.Header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS")
+	// ctx.Header("Access-Control-Allow-Origin", "*")
+  // ctx.Header("Access-Control-Allow-Methods", "*")
+  // ctx.Header("Access-Control-Allow-Headers", "*")
 
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -69,7 +75,20 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	rsp := newUserResponse(user)
+	accessToken, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	rsp := userResponse {
+		Username: user.Username,
+		FullName: user.FullName,
+		Email: user.Email,
+		TotalExpenses: user.TotalExpenses,
+		AccessToken: accessToken,
+	}
+
 	ctx.JSON(http.StatusOK, rsp)
 }
 
@@ -149,4 +168,38 @@ func (server *Server) logInUser(ctx *gin.Context) {
 		User: newUserResponse(user),
 	}
 	ctx.JSON(http.StatusOK, rsp)
+}
+
+type deleteUserRequest struct {
+	Username       string `uri:"username" binding:"required,min=6,max=10"`
+}
+
+func (server *Server) deleteUser(ctx *gin.Context) {
+	// ctx.Header("Access-Control-Allow-Origin", "*")
+	// ctx.Header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS")
+	// ctx.Header("Access-Control-Allow-Origin", "*")
+  // ctx.Header("Access-Control-Allow-Methods", "*")
+  // ctx.Header("Access-Control-Allow-Headers", "*")
+
+	var req deleteUserRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	err := server.store.DeleteUserTx(ctx, authPayload.Username)
+	if err != nil {
+		if pqError, ok := err.(*pq.Error); ok {
+			if pqError.Code.Name() == "users_pkey" {
+				ctx.JSON(http.StatusForbidden, errorResponse(err))
+				return
+			}
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "Deletion Completed")
 }
