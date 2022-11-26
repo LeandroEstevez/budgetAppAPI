@@ -33,6 +33,7 @@ func TestAddEntry(t *testing.T) {
 		Name    string    `json:"name"`
 		DueDate string `json:"due_date"`
 		Amount  int64     `json:"amount"`
+		Category  string     `json:"category"`
 	}
 
 	reqArg := CreateEntryParamsTest {
@@ -40,6 +41,7 @@ func TestAddEntry(t *testing.T) {
 		Name: entry.Name,
 		DueDate: "2022-12-11",
 		Amount: entry.Amount,
+		Category: entry.Category.String,
 	}
 
 	arg := db.AddEntryTxParams {
@@ -47,6 +49,7 @@ func TestAddEntry(t *testing.T) {
 		Name: entry.Name,
 		DueDate: entry.DueDate,
 		Amount: entry.Amount,
+		Category: entry.Category.String,
 	}
 
 	testCases := []struct {
@@ -159,6 +162,174 @@ func TestAddEntry(t *testing.T) {
 			require.NoError(t, err)
 
 			request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body))
+			require.NoError(t, err)
+
+			tc.setupAuth(t, request, server.tokenMaker)
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
+		})
+	}
+}
+
+func TestUpdateEntry(t *testing.T) {
+	user := CreateRandomUser()
+	entry := createRandomEntry(user)
+
+	type UpdateEntryParamsTest struct {
+		Username string `json:"username"`
+		ID int32 `json:"id"`
+		Name string `json:"name"`
+		DueDate string `json:"due_date"`
+		Amount int64 `json:"amount"`
+		Category string `json:"category"`
+	}
+
+	arg := db.UpdateEntryTxParams {
+		Username: entry.Owner,
+		ID: entry.ID,
+		Name: util.RandomString(6),
+		DueDate: entry.DueDate,
+		Amount: util.RandomMoney(),
+		Category: util.RandomString(6),
+	}
+
+	entryResult := db.UpdateEntryTxResult {
+		Entry: db.Entry {
+			ID: entry.ID,
+			Owner: entry.Owner,
+			Name: arg.Name,
+			DueDate: entry.DueDate,
+			Amount: arg.Amount,
+			Category: sql.NullString {
+				String: arg.Category,
+				Valid: true,
+			},
+		},
+		User: user,
+	}
+
+	reqArg := UpdateEntryParamsTest {
+		Username: entry.Owner,
+		ID: entry.ID,
+		Name: arg.Name,
+		DueDate: "2022-12-11",
+		Amount: arg.Amount,
+		Category: arg.Category,
+	}
+
+	fmt.Println("Printing!!!!!!")
+	fmt.Println(entryResult.Entry)
+
+	testCases := []struct {
+		name string
+		reqArg UpdateEntryParamsTest
+		arg db.UpdateEntryTxParams
+		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		buildStubs func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
+	}{
+		{
+			name: "OK",
+			reqArg: reqArg,
+			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					UpdateEntryTx(gomock.Any(), gomock.Eq(arg)).
+					Times(1).
+					Return(entryResult, nil)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchUpdateEntryResult(t, recorder.Body, entryResult)
+			},
+		},
+		{
+			name: "InvalidOwner",
+			reqArg: reqArg,
+			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "xyz", time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					UpdateEntryTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
+			},
+		},
+		{
+			name: "InvalidDate",
+			reqArg: reqArg,
+			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					UpdateEntryTx(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+		{
+			name: "InternalError",
+			reqArg: reqArg,
+			arg: arg,
+			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
+				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
+			},
+			buildStubs: func(store *mockdb.MockStore) {
+				// build stub
+				store.EXPECT().
+					UpdateEntryTx(gomock.Any(), gomock.Any()).
+					Times(1).
+					Return(db.UpdateEntryTxResult{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				// check http status code
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
+			},
+		},
+	}
+
+	for i := range testCases {
+		tc := testCases[i]
+
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			// start test server and send request
+			server := newTestServer(t, store)
+			recorder := httptest.NewRecorder()
+
+			if tc.name == "InvalidOwner" {
+				tc.reqArg.Username = "xyz"
+			} else if tc.name == "InvalidDate" {
+				tc.reqArg.DueDate = "2008-14-14"
+			}
+
+			url := fmt.Sprintf("/updateEntry")
+			body, err := json.Marshal(tc.reqArg)
+			require.NoError(t, err)
+
+			request, err := http.NewRequest(http.MethodPatch, url, bytes.NewBuffer(body))
 			require.NoError(t, err)
 
 			tc.setupAuth(t, request, server.tokenMaker)
@@ -435,6 +606,22 @@ func requireBodyMatchEntryResult(t *testing.T, body *bytes.Buffer, entryResult d
 	require.Equal(t, entryResult.Entry.Owner, gotEntry.Entry.Owner)
 	require.Equal(t, entryResult.Entry.DueDate, gotEntry.Entry.DueDate)
 	require.Equal(t, entryResult.Entry.Amount, gotEntry.Entry.Amount)
+	require.Equal(t, entryResult.Entry.Category, gotEntry.Entry.Category)
+}
+
+func requireBodyMatchUpdateEntryResult(t *testing.T, body *bytes.Buffer, entryResult db.UpdateEntryTxResult) {
+	data, err := ioutil.ReadAll(body)
+	require.NoError(t, err)
+
+	var bodyEntry db.Entry
+	err = json.Unmarshal(data, &bodyEntry)
+	require.NoError(t, err)
+
+	require.Equal(t, entryResult.Entry.Name, bodyEntry.Name)
+	require.Equal(t, entryResult.Entry.Owner, bodyEntry.Owner)
+	require.Equal(t, entryResult.Entry.DueDate, bodyEntry.DueDate)
+	require.Equal(t, entryResult.Entry.Amount, bodyEntry.Amount)
+	require.Equal(t, entryResult.Entry.Category.String, bodyEntry.Category.String)
 }
 
 func requireBodyMatchDeletedEntryResult(t *testing.T, body *bytes.Buffer, userResult db.DeleteEntryTxResult) {
