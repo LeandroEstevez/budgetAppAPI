@@ -28,6 +28,10 @@ func createRandomEntry(t *testing.T, user User) Entry {
 		Name: util.RandomString(4),
 		DueDate: date,
 		Amount: util.RandomMoney(),
+		Category: sql.NullString {
+			String: util.RandomString(4),
+			Valid: true,
+		},
 	}
 
 	entry, err := testQueries.CreateEntry(context.Background(), arg)
@@ -39,6 +43,8 @@ func createRandomEntry(t *testing.T, user User) Entry {
 	// require.Equal(t, arg.DueDate, entry.DueDate)
 	require.NotZero(t, entry.DueDate)
 	require.Equal(t, arg.Amount, entry.Amount)
+
+	require.Equal(t, arg.Category, entry.Category)
 
 	return entry
 }
@@ -55,7 +61,7 @@ func TestUpdateEntry(t *testing.T) {
 	arg := UpdateEntryParams {
 		Owner: user.Username,
 		ID: entry.ID,
-		Amount: util.RandomMoney(),
+		Amount: 10,
 	}
 
 	updatedEntry, err := testQueries.UpdateEntry(context.Background(), arg)
@@ -143,6 +149,21 @@ func TestGetEntries(t *testing.T) {
 
 	for _, entry := range entries {
 		require.NotEmpty(t, entry)
+	}
+}
+
+func TestGetCategories(t *testing.T) {
+	user := createRandomUser(t)
+
+	for i := 0; i < 10; i ++ {
+		createRandomEntry(t, user)
+	}
+
+	categories, err := testQueries.GetCategories(context.Background())
+	require.NoError(t, err)
+
+	for _, category := range categories {
+		require.NotEmpty(t, category)
 	}
 }
 

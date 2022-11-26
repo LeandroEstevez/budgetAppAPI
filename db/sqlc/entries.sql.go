@@ -7,23 +7,25 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 )
 
 const createEntry = `-- name: CreateEntry :one
 INSERT INTO entries (
-  owner, name, due_date, amount
+  owner, name, due_date, amount, category
 ) VALUES (
-  $1, $2, $3, $4
+  $1, $2, $3, $4, $5
 )
-RETURNING id, owner, name, due_date, amount
+RETURNING id, owner, name, due_date, amount, category
 `
 
 type CreateEntryParams struct {
-	Owner   string    `json:"owner"`
-	Name    string    `json:"name"`
-	DueDate time.Time `json:"due_date"`
-	Amount  int64     `json:"amount"`
+	Owner    string         `json:"owner"`
+	Name     string         `json:"name"`
+	DueDate  time.Time      `json:"due_date"`
+	Amount   int64          `json:"amount"`
+	Category sql.NullString `json:"category"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
@@ -32,6 +34,7 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 		arg.Name,
 		arg.DueDate,
 		arg.Amount,
+		arg.Category,
 	)
 	var i Entry
 	err := row.Scan(
@@ -40,6 +43,7 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 		&i.Name,
 		&i.DueDate,
 		&i.Amount,
+		&i.Category,
 	)
 	return i, err
 }
@@ -64,8 +68,36 @@ func (q *Queries) DeleteEntry(ctx context.Context, id int32) error {
 	return err
 }
 
+const getCategories = `-- name: GetCategories :many
+SELECT category FROM entries
+WHERE category != '' AND category IS NOT NULL
+`
+
+func (q *Queries) GetCategories(ctx context.Context) ([]sql.NullString, error) {
+	rows, err := q.db.QueryContext(ctx, getCategories)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []sql.NullString{}
+	for rows.Next() {
+		var category sql.NullString
+		if err := rows.Scan(&category); err != nil {
+			return nil, err
+		}
+		items = append(items, category)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getEntries = `-- name: GetEntries :many
-SELECT id, owner, name, due_date, amount FROM entries
+SELECT id, owner, name, due_date, amount, category FROM entries
 WHERE owner = $1
 `
 
@@ -84,6 +116,7 @@ func (q *Queries) GetEntries(ctx context.Context, owner string) ([]Entry, error)
 			&i.Name,
 			&i.DueDate,
 			&i.Amount,
+			&i.Category,
 		); err != nil {
 			return nil, err
 		}
@@ -99,7 +132,7 @@ func (q *Queries) GetEntries(ctx context.Context, owner string) ([]Entry, error)
 }
 
 const getEntry = `-- name: GetEntry :one
-SELECT id, owner, name, due_date, amount FROM entries
+SELECT id, owner, name, due_date, amount, category FROM entries
 WHERE owner = $1 AND id = $2
 `
 
@@ -117,12 +150,13 @@ func (q *Queries) GetEntry(ctx context.Context, arg GetEntryParams) (Entry, erro
 		&i.Name,
 		&i.DueDate,
 		&i.Amount,
+		&i.Category,
 	)
 	return i, err
 }
 
 const getEntryForUpdate = `-- name: GetEntryForUpdate :one
-SELECT id, owner, name, due_date, amount FROM entries
+SELECT id, owner, name, due_date, amount, category FROM entries
 WHERE owner = $1 AND id = $2
 FOR NO KEY UPDATE
 `
@@ -141,25 +175,36 @@ func (q *Queries) GetEntryForUpdate(ctx context.Context, arg GetEntryForUpdatePa
 		&i.Name,
 		&i.DueDate,
 		&i.Amount,
+		&i.Category,
 	)
 	return i, err
 }
 
 const updateEntry = `-- name: UpdateEntry :one
 UPDATE entries
-SET amount = $3
+SET name = $3, due_date = $4, amount = $5, category = $6
 WHERE owner = $1 AND id = $2
-RETURNING id, owner, name, due_date, amount
+RETURNING id, owner, name, due_date, amount, category
 `
 
 type UpdateEntryParams struct {
-	Owner  string `json:"owner"`
-	ID     int32  `json:"id"`
-	Amount int64  `json:"amount"`
+	Owner    string         `json:"owner"`
+	ID       int32          `json:"id"`
+	Name     string         `json:"name"`
+	DueDate  time.Time      `json:"due_date"`
+	Amount   int64          `json:"amount"`
+	Category sql.NullString `json:"category"`
 }
 
 func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, updateEntry, arg.Owner, arg.ID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, updateEntry,
+		arg.Owner,
+		arg.ID,
+		arg.Name,
+		arg.DueDate,
+		arg.Amount,
+		arg.Category,
+	)
 	var i Entry
 	err := row.Scan(
 		&i.ID,
@@ -167,6 +212,7 @@ func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry
 		&i.Name,
 		&i.DueDate,
 		&i.Amount,
+		&i.Category,
 	)
 	return i, err
 }
