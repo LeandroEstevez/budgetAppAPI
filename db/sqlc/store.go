@@ -56,6 +56,7 @@ type AddEntryTxParams struct {
 	Name string `json:"name"`
 	DueDate time.Time `json:"due_date"`
 	Amount int64 `json:"amount"`
+	Category string `json:"category"`
 }
 
 // Contains the result of the Add entry transaction
@@ -79,6 +80,7 @@ func (store *SQLStore) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (Ad
 			Name: arg.Name,
 			DueDate: arg.DueDate,
 			Amount: arg.Amount,
+			Category: sql.NullString{String: arg.Category, Valid: true},
 		}
 		result.Entry, err = q.CreateEntry(ctx, createEntryParams)
 		if err != nil {
@@ -108,7 +110,10 @@ func (store *SQLStore) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (Ad
 type UpdateEntryTxParams struct {
 	Username string `json:"username"`
 	ID int32 `json:"id"`
+	Name string `json:"name"`
+	DueDate time.Time `json:"due_date"`
 	Amount int64 `json:"amount"`
+	Category string `json:"category"`
 }
 
 // Contains the result of the update entry transaction
@@ -151,11 +156,28 @@ func (store *SQLStore) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParam
 			return err
 		}
 
+		var categoryValue sql.NullString
+		if arg.Category == "" {
+			categoryValue = sql.NullString {
+				String: "",
+				Valid: false,
+			}
+		} else {
+			categoryValue = sql.NullString {
+				String: arg.Category,
+				Valid: true,
+			}
+		}
+
 		updateEntryParams := UpdateEntryParams {
 			Owner: arg.Username,
 			ID: arg.ID,
+			Name: arg.Name,
+			DueDate: arg.DueDate,
 			Amount: arg.Amount,
+			Category: categoryValue,
 		}
+
 		result.Entry, err = q.UpdateEntry(ctx, updateEntryParams)
 		if err != nil {
 			return err

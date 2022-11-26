@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
 
 	"github.com/LeandroEstevez/budgetAppAPI/util"
@@ -24,6 +23,7 @@ func TestAddEntryTx(t *testing.T) {
 		Name: util.RandomString(6),
 		DueDate: date,
 		Amount: util.RandomMoney(),
+		Category: util.RandomString(6),
 	}
 
 	result, err := store.AddEntryTx(context.Background(), addEntryTxParams)
@@ -39,6 +39,9 @@ func TestAddEntryTx(t *testing.T) {
 
 	require.NotEmpty(t, result.Entry)
 	require.Equal(t, entryAmount, result.Entry.Amount)
+
+	require.NotEmpty(t, result.Entry)
+	require.Equal(t, addEntryTxParams.Category, result.Entry.Category.String)
 }
 
 func TestUpdateEntryTx(t *testing.T) {
@@ -52,7 +55,10 @@ func TestUpdateEntryTx(t *testing.T) {
 	result, err := store.UpdateEntryTx(context.Background(), UpdateEntryTxParams {
 		Username: user.Username,
 		ID: entry.ID,
+		Name: entry.Name,
+		DueDate: entry.DueDate,
 		Amount: amount,
+		Category: entry.Category.String,
 	})
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
@@ -67,7 +73,9 @@ func TestUpdateEntryTx(t *testing.T) {
 	require.Equal(t, totalExpenses, result.User.TotalExpenses)
 
 	require.NotEmpty(t, result.Entry)
-	require.Equal(t, amount, result.Entry.Amount)
+	require.Equal(t, entry.Name, result.Entry.Name)
+	require.NotEqual(t, entry.Amount, result.Entry.Amount)
+	require.Equal(t, entry.Category, result.Entry.Category)
 }
 
 func TestDeleteEntryTx(t *testing.T) {
@@ -127,8 +135,6 @@ func TestConcurrentAddEntryTx(t *testing.T) {
 
 	user := createRandomUser(t)
 
-	fmt.Println("Before >>", user.TotalExpenses)
-
 	date, err := GetMadeUpDate("2022-12-11")
 	require.NoError(t, err)
 	require.NotEmpty(t, date)
@@ -165,8 +171,6 @@ func TestConcurrentAddEntryTx(t *testing.T) {
 		entryAmount := int64(10)
 		totalExpenses = totalExpenses + entryAmount
 
-		fmt.Println("After >>", result.User.TotalExpenses)
-
 		require.NotEmpty(t, result.User)
 		// require.Equal(t, totalExpenses, result.User.TotalExpenses)
 
@@ -185,8 +189,6 @@ func TestConcurrentUpdateEntryTx(t *testing.T) {
 
 	user := createRandomUser(t)
 	entry := createRandomEntry(t, user)
-	fmt.Println("Before >>", user.TotalExpenses)
-	fmt.Println("Before >>", entry.Amount)
 
 	amount := int64(0)
 
@@ -223,9 +225,6 @@ func TestConcurrentUpdateEntryTx(t *testing.T) {
 
 		changeInAmount := amount - entryAmount
 		totalExpenses = totalExpenses + changeInAmount
-
-		fmt.Println("After >>", result.User.TotalExpenses)
-		fmt.Println("After >>",  result.Entry.Amount)
 
 		require.NotEmpty(t, result.User)
 		require.Equal(t, totalExpenses, result.User.TotalExpenses)
