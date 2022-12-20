@@ -16,12 +16,14 @@ type Querier interface {
 	DeleteEntry(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, username string) error
 	GetCategories(ctx context.Context) ([]sql.NullString, error)
+	GetEmail(ctx context.Context, username string) (User, error)
 	GetEntries(ctx context.Context, owner string) ([]Entry, error)
 	GetEntry(ctx context.Context, arg GetEntryParams) (Entry, error)
 	GetEntryForUpdate(ctx context.Context, arg GetEntryForUpdateParams) (Entry, error)
 	GetUser(ctx context.Context, username string) (User, error)
 	GetUserForUpdate(ctx context.Context, username string) (User, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
+	ResetPassword(ctx context.Context, arg ResetPasswordParams) error
 	UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }

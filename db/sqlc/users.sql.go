@@ -57,6 +57,26 @@ func (q *Queries) DeleteUser(ctx context.Context, username string) error {
 	return err
 }
 
+const getEmail = `-- name: GetEmail :one
+SELECT username, hashed_password, full_name, email, total_expenses, password_changed_at, created_at FROM users
+WHERE username = $1
+`
+
+func (q *Queries) GetEmail(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getEmail, username)
+	var i User
+	err := row.Scan(
+		&i.Username,
+		&i.HashedPassword,
+		&i.FullName,
+		&i.Email,
+		&i.TotalExpenses,
+		&i.PasswordChangedAt,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT username, hashed_password, full_name, email, total_expenses, password_changed_at, created_at FROM users
 WHERE username = $1
@@ -139,6 +159,22 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const resetPassword = `-- name: ResetPassword :exec
+UPDATE users
+SET hashed_password = $2
+WHERE username = $1
+`
+
+type ResetPasswordParams struct {
+	Username       string `json:"username"`
+	HashedPassword string `json:"hashed_password"`
+}
+
+func (q *Queries) ResetPassword(ctx context.Context, arg ResetPasswordParams) error {
+	_, err := q.db.ExecContext(ctx, resetPassword, arg.Username, arg.HashedPassword)
+	return err
 }
 
 const updateUser = `-- name: UpdateUser :one

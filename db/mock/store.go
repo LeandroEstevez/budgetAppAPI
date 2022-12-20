@@ -167,6 +167,21 @@ func (mr *MockStoreMockRecorder) GetCategories(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCategories", reflect.TypeOf((*MockStore)(nil).GetCategories), arg0)
 }
 
+// GetEmail mocks base method.
+func (m *MockStore) GetEmail(arg0 context.Context, arg1 string) (db.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetEmail", arg0, arg1)
+	ret0, _ := ret[0].(db.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetEmail indicates an expected call of GetEmail.
+func (mr *MockStoreMockRecorder) GetEmail(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEmail", reflect.TypeOf((*MockStore)(nil).GetEmail), arg0, arg1)
+}
+
 // GetEntries mocks base method.
 func (m *MockStore) GetEntries(arg0 context.Context, arg1 string) ([]db.Entry, error) {
 	m.ctrl.T.Helper()
@@ -255,6 +270,20 @@ func (m *MockStore) ListUsers(arg0 context.Context, arg1 db.ListUsersParams) ([]
 func (mr *MockStoreMockRecorder) ListUsers(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListUsers", reflect.TypeOf((*MockStore)(nil).ListUsers), arg0, arg1)
+}
+
+// ResetPassword mocks base method.
+func (m *MockStore) ResetPassword(arg0 context.Context, arg1 db.ResetPasswordParams) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetPassword", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ResetPassword indicates an expected call of ResetPassword.
+func (mr *MockStoreMockRecorder) ResetPassword(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetPassword", reflect.TypeOf((*MockStore)(nil).ResetPassword), arg0, arg1)
 }
 
 // UpdateEntry mocks base method.

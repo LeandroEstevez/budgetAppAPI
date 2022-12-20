@@ -3,7 +3,9 @@ package api
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
 	"github.com/LeandroEstevez/budgetAppAPI/token"
@@ -202,4 +204,104 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, "Deletion Completed")
+}
+
+type forgotPasswordRequest struct {
+	Username       string `uri:"username" binding:"required,min=6,max=10"`
+}
+
+func (server *Server) forgotPassword(ctx *gin.Context) {
+	var req forgotPasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	fmt.Println("Binding json request")
+
+	user, err := server.store.GetEmail(ctx, req.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	fmt.Println("Got User from DB", user)
+
+	resetToken, err := server.tokenMaker.CreateToken(user.Username, server.config.AccessTokenDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	fmt.Println("Made the token")
+
+	var firstName = user.FullName
+	if strings.Contains(firstName, " ") {
+		firstName = strings.Split(firstName, " ")[1]
+	}
+
+	// ? Send Email
+	emailData := util.EmailData{
+		URL:       "http://localhost:3000" + "/resetpassword/" + resetToken,
+		FirstName: firstName,
+		Subject:   "Your password reset token (valid for 15min)",
+	}
+
+	fmt.Println("Trying to send the email")
+
+	err = util.SendEmail(&user, &emailData, "resetPassword.html")
+	if err != nil {
+		ctx.JSON(http.StatusBadGateway, gin.H{"status": "success", "message": "There was an error sending email"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, "You will receive a reset email if user with that email exist")
+}
+
+type resetPasswordRequest struct {
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+func (server *Server) resetPassword(ctx *gin.Context) {
+	var req resetPasswordRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+	fmt.Println("got the req")
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	fmt.Println("got the payload")
+
+	hasedPassword, err := util.HashPassword(req.Password)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	fmt.Println("hashed the password")
+
+	arg := db.ResetPasswordParams {
+		Username: authPayload.Username,
+		HashedPassword: hasedPassword,
+	}
+
+	fmt.Println("got the arg", arg)
+
+	err = server.store.ResetPassword(ctx, arg)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	fmt.Println("changed the password")
+
+	ctx.JSON(http.StatusOK, "Password data updated successfully")
 }

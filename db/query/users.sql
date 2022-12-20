@@ -10,6 +10,10 @@ RETURNING *;
 SELECT * FROM users
 WHERE username = $1;
 
+-- name: GetEmail :one
+SELECT * FROM users
+WHERE username = $1;
+
 -- name: GetUserForUpdate :one
 SELECT * FROM users
 WHERE username = $1
@@ -26,6 +30,11 @@ UPDATE users
 SET total_expenses = $2
 WHERE username = $1
 RETURNING *;
+
+-- name: ResetPassword :exec
+UPDATE users
+SET hashed_password = $2
+WHERE username = $1;
 
 -- name: DeleteUser :exec
 DELETE FROM users
