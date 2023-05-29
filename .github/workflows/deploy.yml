@@ -8,9 +8,9 @@ jobs:
   build:
     name: Build image
     runs-on: ubuntu-latest
-    # permissions:
-    #   id-token: write
-    #   contents: write
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
       - name: Checkout code
@@ -22,7 +22,7 @@ jobs:
           role-to-assume: arn:aws:iam::807602152072:role/github-ci
           aws-region: us-east-1
 
-      - name: Login to Amazon ECR Public
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -32,7 +32,6 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REGISTRY_ALIAS: budgetappapi
           REPOSITORY: budgetappapi
           IMAGE_TAG: ${{ github.sha }}
         run: |
