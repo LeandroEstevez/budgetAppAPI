@@ -41,7 +41,7 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REGISTRY_ALIAS: my-ecr-public-registry-alias
+          REGISTRY_ALIAS: budgetappapi
           REPOSITORY: budgetapi
           IMAGE_TAG: ${{ github.sha }}
         run: |
