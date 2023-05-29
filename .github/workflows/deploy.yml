@@ -29,9 +29,11 @@ jobs:
       #     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       #     aws-region: us-east-1
 
-      - name: Login to Amazon ECR
-        id: login-ecr
+      - name: Login to Amazon ECR Public
+        id: login-ecr-public
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          registry-type: public
 
       - name: Load secrets and save to app.env
         run: aws secretsmanager get-secret-value --secret-id budgetapi --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
