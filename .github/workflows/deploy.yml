@@ -46,7 +46,7 @@ jobs:
           docker push 807602152072.dkr.ecr.us-east-1.amazonaws.com/budgetappapi:latest
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name budgetapi --region us-east-2
+        run: aws eks update-kubeconfig --name budgetapp --region us-east-2
 
       - name: Deploy image to Amazon EKS
         run: |
