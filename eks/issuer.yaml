@@ -7,8 +7,10 @@ spec:
     email: leoest.dev@gmail.com
     server: https://acme-v02.api.letsencrypt.org/directory
     privateKeySecretRef:
+      # Secret resource that will be used to store the account's private key.
       name: letsencrypt-account-account-key
+    # Add a single challenge solver, HTTP01 using nginx
     solvers:
-      - http01:
-          ingress:
-            class: nginx
+    - http01:
+        ingress:
+          ingressClassName: nginx

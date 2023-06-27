@@ -8,23 +8,24 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: budgetapi-ingress
+  name: budgetapp-ingress
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
   ingressClassName: nginx
   rules:
-    - host: "api.budget-api.com"
+    - host: "yourbudgetapp.com"
       http:
         paths:
           - pathType: Prefix
             path: "/"
             backend:
               service:
-                name: budgetapi-service
+                name: budgetapp-service
                 port:
                   number: 80
   tls:
     - hosts:
-        - api.budget-api.com
-      secretName: budget-api-cert
+      - yourbudgetapp.com
+      secretName: budgetapp-cert
+
