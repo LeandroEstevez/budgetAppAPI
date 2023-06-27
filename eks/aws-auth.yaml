@@ -10,8 +10,7 @@ data:
       groups:        
         - system:bootstrappers        
         - system:nodes
-    - rolearn: arn:aws:iam::807602152072:role/github-ci    
-      username: system:node:{{EC2PrivateDNSName}}      
+    - rolearn: arn:aws:iam::807602152072:role/github-ci
+      username: github-ci      
       groups:        
-        - system:bootstrappers        
-        - system:nodes
+        - system:masters
