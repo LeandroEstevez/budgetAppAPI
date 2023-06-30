@@ -10,8 +10,13 @@ data:
       groups:        
         - system:bootstrappers        
         - system:nodes
-  mapUsers: |
-    - userarn: arn:aws:iam::807602152072:user/github-ci
-      username: github-ci
-      groups:
-        - system:masters
+    - rolearn: arn:aws:iam::807602152072:role/github-ci   
+      username: github-ci      
+      groups:        
+        - system:bootstrappers        
+        - system:nodes
+  # mapUsers: |
+  #   - userarn: arn:aws:iam::807602152072:user/github-ci
+  #     username: github-ci
+  #     groups:
+  #       - system:masters
