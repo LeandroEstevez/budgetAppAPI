@@ -161,6 +161,8 @@ github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/X
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/k3a/html2text v1.1.0 h1:ks4hKSTdiTRsLr0DM771mI5TvsoG6zH7m1Ulv7eJRHw=
 github.com/k3a/html2text v1.1.0/go.mod h1:ieEXykM67iT8lTvEWBh6fhpH4B23kB9OMKPdIBmgUqA=
+github.com/kisielk/godepgraph v0.0.0-20221115040737-2d0831789458 h1:QHffewzTTAhdV2FQ0X6hxp/tHpRYXE3STwzaD94N1qw=
+github.com/kisielk/godepgraph v0.0.0-20221115040737-2d0831789458/go.mod h1:Gb5YEgxqiSSVrXKWQxDcKoCM94NO5QAwOwTaVmIUAMI=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/fs v0.1.0/go.mod h1:FFnZGqtBN9Gxj7eW1uZ42v5BccTP0vu6NEaFoC2HwRg=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=

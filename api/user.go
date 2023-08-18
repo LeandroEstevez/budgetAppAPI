@@ -15,25 +15,25 @@ import (
 )
 
 type createUserRequest struct {
-	Username       string `json:"username" binding:"required,alphanum,min=6,max=10"`
-	FullName       string `json:"full_name" binding:"required,alphaunicode"`
-	Email          string `json:"email" binding:"required,email"`
+	Username string `json:"username" binding:"required,alphanum,min=6,max=10"`
+	FullName string `json:"full_name" binding:"required,alphaunicode"`
+	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
 type userResponse struct {
-	Username       string `json:"username"`
-	FullName       string `json:"full_name"`
-	Email          string `json:"email"`
-	TotalExpenses     int64     `json:"total_expenses"`
-	AccessToken       string `json:"access_token"`
+	Username      string `json:"username"`
+	FullName      string `json:"full_name"`
+	Email         string `json:"email"`
+	TotalExpenses int64  `json:"total_expenses"`
+	AccessToken   string `json:"access_token"`
 }
 
 func newUserResponse(user db.User) userResponse {
-	return userResponse {
-		Username: user.Username,
-		FullName: user.FullName,
-		Email: user.Email,
+	return userResponse{
+		Username:      user.Username,
+		FullName:      user.FullName,
+		Email:         user.Email,
 		TotalExpenses: user.TotalExpenses,
 	}
 }
@@ -42,8 +42,8 @@ func (server *Server) createUser(ctx *gin.Context) {
 	// ctx.Header("Access-Control-Allow-Origin", "*")
 	// ctx.Header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS")
 	// ctx.Header("Access-Control-Allow-Origin", "*")
-  // ctx.Header("Access-Control-Allow-Methods", "*")
-  // ctx.Header("Access-Control-Allow-Headers", "*")
+	// ctx.Header("Access-Control-Allow-Methods", "*")
+	// ctx.Header("Access-Control-Allow-Headers", "*")
 
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -57,12 +57,12 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.CreateUserParams {
-		Username: req.Username,
+	arg := db.CreateUserParams{
+		Username:       req.Username,
 		HashedPassword: hasedPassword,
-		FullName: req.FullName,
-		Email: req.Email,
-		TotalExpenses: 0,
+		FullName:       req.FullName,
+		Email:          req.Email,
+		TotalExpenses:  0,
 	}
 
 	user, err := server.store.CreateUser(ctx, arg)
@@ -83,19 +83,19 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	rsp := userResponse {
-		Username: user.Username,
-		FullName: user.FullName,
-		Email: user.Email,
+	rsp := userResponse{
+		Username:      user.Username,
+		FullName:      user.FullName,
+		Email:         user.Email,
 		TotalExpenses: user.TotalExpenses,
-		AccessToken: accessToken,
+		AccessToken:   accessToken,
 	}
 
 	ctx.JSON(http.StatusOK, rsp)
 }
 
 type getUserRequest struct {
-	Username       string `uri:"username" binding:"required,min=6,max=10"`
+	Username string `uri:"username" binding:"required,min=6,max=10"`
 }
 
 func (server *Server) getUser(ctx *gin.Context) {
@@ -127,13 +127,13 @@ func (server *Server) getUser(ctx *gin.Context) {
 }
 
 type logInUserRequest struct {
-	Username       string `json:"username" binding:"required,alphanum,min=6,max=10"`
+	Username string `json:"username" binding:"required,alphanum,min=6,max=10"`
 	Password string `json:"password" binding:"required,min=6"`
 }
 
 type logInUserResponse struct {
-	AccessToken       string `json:"access_token"`
-	User userResponse `json:"user"`
+	AccessToken string       `json:"access_token"`
+	User        userResponse `json:"user"`
 }
 
 func (server *Server) logInUser(ctx *gin.Context) {
@@ -165,23 +165,23 @@ func (server *Server) logInUser(ctx *gin.Context) {
 		return
 	}
 
-	rsp := logInUserResponse {
+	rsp := logInUserResponse{
 		AccessToken: accessToken,
-		User: newUserResponse(user),
+		User:        newUserResponse(user),
 	}
 	ctx.JSON(http.StatusOK, rsp)
 }
 
 type deleteUserRequest struct {
-	Username       string `uri:"username" binding:"required,min=6,max=10"`
+	Username string `uri:"username" binding:"required,min=6,max=10"`
 }
 
 func (server *Server) deleteUser(ctx *gin.Context) {
 	// ctx.Header("Access-Control-Allow-Origin", "*")
 	// ctx.Header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS")
 	// ctx.Header("Access-Control-Allow-Origin", "*")
-  // ctx.Header("Access-Control-Allow-Methods", "*")
-  // ctx.Header("Access-Control-Allow-Headers", "*")
+	// ctx.Header("Access-Control-Allow-Methods", "*")
+	// ctx.Header("Access-Control-Allow-Headers", "*")
 
 	var req deleteUserRequest
 	if err := ctx.ShouldBindUri(&req); err != nil {
@@ -207,7 +207,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 }
 
 type forgotPasswordRequest struct {
-	Username       string `uri:"username" binding:"required,min=6,max=10"`
+	Username string `uri:"username" binding:"required,min=6,max=10"`
 }
 
 func (server *Server) forgotPassword(ctx *gin.Context) {
@@ -253,7 +253,7 @@ func (server *Server) forgotPassword(ctx *gin.Context) {
 
 	fmt.Println("Trying to send the email")
 
-	err = util.SendEmail(&user, &emailData, "resetPassword.html")
+	err = util.SendEmail(&emailData, "resetPassword.html")
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"status": "success", "message": "There was an error sending email"})
 		return
@@ -284,8 +284,8 @@ func (server *Server) resetPassword(ctx *gin.Context) {
 	}
 	fmt.Println("hashed the password")
 
-	arg := db.ResetPasswordParams {
-		Username: authPayload.Username,
+	arg := db.ResetPasswordParams{
+		Username:       authPayload.Username,
 		HashedPassword: hasedPassword,
 	}
 

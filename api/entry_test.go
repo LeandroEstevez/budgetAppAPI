@@ -23,47 +23,47 @@ func TestAddEntry(t *testing.T) {
 	user := CreateRandomUser()
 	entry := createRandomEntry(user)
 
-	entryResult := db.AddEntryTxResult {
+	entryResult := db.AddEntryTxResult{
 		Entry: entry,
-		User: user,
+		User:  user,
 	}
 
 	type CreateEntryParamsTest struct {
-		Username   string    `json:"username"`
-		Name    string    `json:"name"`
-		DueDate string `json:"due_date"`
-		Amount  int64     `json:"amount"`
-		Category  string     `json:"category"`
+		Username string `json:"username"`
+		Name     string `json:"name"`
+		DueDate  string `json:"due_date"`
+		Amount   int64  `json:"amount"`
+		Category string `json:"category"`
 	}
 
-	reqArg := CreateEntryParamsTest {
+	reqArg := CreateEntryParamsTest{
 		Username: entry.Owner,
-		Name: entry.Name,
-		DueDate: "2022-12-11",
-		Amount: entry.Amount,
+		Name:     entry.Name,
+		DueDate:  "2022-12-11",
+		Amount:   entry.Amount,
 		Category: entry.Category.String,
 	}
 
-	arg := db.AddEntryTxParams {
+	arg := db.AddEntryTxParams{
 		Username: entry.Owner,
-		Name: entry.Name,
-		DueDate: entry.DueDate,
-		Amount: entry.Amount,
+		Name:     entry.Name,
+		DueDate:  entry.DueDate,
+		Amount:   entry.Amount,
 		Category: entry.Category.String,
 	}
 
 	testCases := []struct {
-		name string
-		reqArg CreateEntryParamsTest
-		arg db.AddEntryTxParams
-		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
-		buildStubs func(store *mockdb.MockStore)
+		name          string
+		reqArg        CreateEntryParamsTest
+		arg           db.AddEntryTxParams
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "OK",
+			name:   "OK",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -81,9 +81,9 @@ func TestAddEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InvalidOwner",
+			name:   "InvalidOwner",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "xyz", time.Minute)
 			},
@@ -99,9 +99,9 @@ func TestAddEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InvalidDate",
+			name:   "InvalidDate",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -117,9 +117,9 @@ func TestAddEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InternalError",
+			name:   "InternalError",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -177,61 +177,58 @@ func TestUpdateEntry(t *testing.T) {
 
 	type UpdateEntryParamsTest struct {
 		Username string `json:"username"`
-		ID int32 `json:"id"`
-		Name string `json:"name"`
-		DueDate string `json:"due_date"`
-		Amount int64 `json:"amount"`
+		ID       int32  `json:"id"`
+		Name     string `json:"name"`
+		DueDate  string `json:"due_date"`
+		Amount   int64  `json:"amount"`
 		Category string `json:"category"`
 	}
 
-	arg := db.UpdateEntryTxParams {
+	arg := db.UpdateEntryTxParams{
 		Username: entry.Owner,
-		ID: entry.ID,
-		Name: util.RandomString(6),
-		DueDate: entry.DueDate,
-		Amount: util.RandomMoney(),
+		ID:       entry.ID,
+		Name:     util.RandomString(6),
+		DueDate:  entry.DueDate,
+		Amount:   util.RandomMoney(),
 		Category: util.RandomString(6),
 	}
 
-	entryResult := db.UpdateEntryTxResult {
-		Entry: db.Entry {
-			ID: entry.ID,
-			Owner: entry.Owner,
-			Name: arg.Name,
+	entryResult := db.UpdateEntryTxResult{
+		Entry: db.Entry{
+			ID:      entry.ID,
+			Owner:   entry.Owner,
+			Name:    arg.Name,
 			DueDate: entry.DueDate,
-			Amount: arg.Amount,
-			Category: sql.NullString {
+			Amount:  arg.Amount,
+			Category: sql.NullString{
 				String: arg.Category,
-				Valid: true,
+				Valid:  true,
 			},
 		},
 		User: user,
 	}
 
-	reqArg := UpdateEntryParamsTest {
+	reqArg := UpdateEntryParamsTest{
 		Username: entry.Owner,
-		ID: entry.ID,
-		Name: arg.Name,
-		DueDate: "2022-12-11",
-		Amount: arg.Amount,
+		ID:       entry.ID,
+		Name:     arg.Name,
+		DueDate:  "2022-12-11",
+		Amount:   arg.Amount,
 		Category: arg.Category,
 	}
 
-	fmt.Println("Printing!!!!!!")
-	fmt.Println(entryResult.Entry)
-
 	testCases := []struct {
-		name string
-		reqArg UpdateEntryParamsTest
-		arg db.UpdateEntryTxParams
-		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
-		buildStubs func(store *mockdb.MockStore)
+		name          string
+		reqArg        UpdateEntryParamsTest
+		arg           db.UpdateEntryTxParams
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "OK",
+			name:   "OK",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -249,9 +246,9 @@ func TestUpdateEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InvalidOwner",
+			name:   "InvalidOwner",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, "xyz", time.Minute)
 			},
@@ -267,9 +264,9 @@ func TestUpdateEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InvalidDate",
+			name:   "InvalidDate",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -285,9 +282,9 @@ func TestUpdateEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InternalError",
+			name:   "InternalError",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -344,37 +341,37 @@ func TestDeleteEntry(t *testing.T) {
 	entry := createRandomEntry(user)
 
 	type DeleteEntryParamsTest struct {
-		Owner   string    `json:"owner"`
-		ID int32 `json:"id"`
+		Owner string `json:"owner"`
+		ID    int32  `json:"id"`
 	}
 
-	reqArg := DeleteEntryParamsTest {
+	reqArg := DeleteEntryParamsTest{
 		Owner: entry.Owner,
-		ID: entry.ID,
+		ID:    entry.ID,
 	}
 
-	arg := db.DeleteEntryTxParams {
+	arg := db.DeleteEntryTxParams{
 		Username: user.Username,
-		ID: entry.ID,
+		ID:       entry.ID,
 	}
 
 	user.TotalExpenses = user.TotalExpenses - entry.Amount
-	result := db.DeleteEntryTxResult {
+	result := db.DeleteEntryTxResult{
 		User: user,
 	}
 
 	testCases := []struct {
-		name string
-		reqArg DeleteEntryParamsTest
-		arg db.DeleteEntryTxParams
-		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
-		buildStubs func(store *mockdb.MockStore)
+		name          string
+		reqArg        DeleteEntryParamsTest
+		arg           db.DeleteEntryTxParams
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "OK",
+			name:   "OK",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -392,9 +389,9 @@ func TestDeleteEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "BadId",
+			name:   "BadId",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -410,9 +407,9 @@ func TestDeleteEntry(t *testing.T) {
 			},
 		},
 		{
-			name: "InternalError",
+			name:   "InternalError",
 			reqArg: reqArg,
-			arg: arg,
+			arg:    arg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
 			},
@@ -474,23 +471,23 @@ func TestGetEntries(t *testing.T) {
 
 	owner := entries[0].Owner
 
-	reqArg := struct{
+	reqArg := struct {
 		username string
 	}{
 		username: owner,
 	}
 
 	testCases := []struct {
-		name string
-		owner string
-		reqArg struct{username string}
-		setupAuth func(t *testing.T, request *http.Request, tokenMaker token.Maker)
-		buildStubs func(store *mockdb.MockStore)
+		name          string
+		owner         string
+		reqArg        struct{ username string }
+		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
+		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
-			name: "OK",
-			owner: owner,
+			name:   "OK",
+			owner:  owner,
 			reqArg: reqArg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -509,8 +506,8 @@ func TestGetEntries(t *testing.T) {
 			},
 		},
 		{
-			name: "BadRequest",
-			owner: owner,
+			name:   "BadRequest",
+			owner:  owner,
 			reqArg: reqArg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -527,8 +524,8 @@ func TestGetEntries(t *testing.T) {
 			},
 		},
 		{
-			name: "NotFound",
-			owner: owner,
+			name:   "NotFound",
+			owner:  owner,
 			reqArg: reqArg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -545,8 +542,8 @@ func TestGetEntries(t *testing.T) {
 			},
 		},
 		{
-			name: "InternalError",
-			owner: owner,
+			name:   "InternalError",
+			owner:  owner,
 			reqArg: reqArg,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
 				addAuthorization(t, request, tokenMaker, authorizationTypeBearer, user.Username, time.Minute)
@@ -578,7 +575,7 @@ func TestGetEntries(t *testing.T) {
 			server := newTestServer(t, store)
 			recorder := httptest.NewRecorder()
 
-			if  tc.name == "BadRequest" {
+			if tc.name == "BadRequest" {
 				tc.owner = "xyz"
 			}
 
@@ -655,13 +652,13 @@ func requireBodyMatchEntries(t *testing.T, body *bytes.Buffer, entries []db.Entr
 }
 
 func createRandomEntry(user db.User) db.Entry {
-	date, _ :=  time.Parse(YYYYMMDD, "2022-12-11")
+	date, _ := time.Parse(YYYYMMDD, "2022-12-11")
 
-	return db.Entry {
-		ID: 95,
-		Owner: user.Username,
-		Name: util.RandomString(6),
+	return db.Entry{
+		ID:      95,
+		Owner:   user.Username,
+		Name:    util.RandomString(6),
 		DueDate: date,
-		Amount: 5,
+		Amount:  5,
 	}
 }

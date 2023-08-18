@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
 	"github.com/k3a/html2text"
 	"gopkg.in/gomail.v2"
 )
@@ -43,7 +42,7 @@ func ParseTemplateDir(dir string) (*template.Template, error) {
 }
 
 // ? Email template parser
-func SendEmail(user *db.User, data *EmailData, templateName string) error {
+func SendEmail(data *EmailData, templateName string) error {
 
 	// Sender data.
 	from := "leandroest111298@gmail.com"
@@ -86,4 +85,3 @@ func SendEmail(user *db.User, data *EmailData, templateName string) error {
 	fmt.Println("Sent the email")
 	return nil
 }
-
