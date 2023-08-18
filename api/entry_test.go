@@ -445,7 +445,7 @@ func TestDeleteEntry(t *testing.T) {
 				tc.reqArg.ID = -1
 			}
 
-			url := fmt.Sprintf("/deleteEntry")
+			url := fmt.Sprintf("/deleteEntry/%d", tc.reqArg.ID)
 			body, err := json.Marshal(tc.reqArg)
 			require.NoError(t, err)
 
