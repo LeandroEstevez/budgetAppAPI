@@ -15,7 +15,7 @@ type Querier interface {
 	DeleteEntries(ctx context.Context, owner string) error
 	DeleteEntry(ctx context.Context, id int32) error
 	DeleteUser(ctx context.Context, username string) error
-	GetCategories(ctx context.Context) ([]sql.NullString, error)
+	GetCategories(ctx context.Context, owner string) ([]sql.NullString, error)
 	GetEmail(ctx context.Context, username string) (User, error)
 	GetEntries(ctx context.Context, owner string) ([]Entry, error)
 	GetEntry(ctx context.Context, arg GetEntryParams) (Entry, error)

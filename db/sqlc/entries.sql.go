@@ -70,11 +70,12 @@ func (q *Queries) DeleteEntry(ctx context.Context, id int32) error {
 
 const getCategories = `-- name: GetCategories :many
 SELECT category FROM entries
-WHERE category != '' AND category IS NOT NULL
+WHERE owner = $1 AND category != '' AND category IS NOT NULL
+GROUP BY category
 `
 
-func (q *Queries) GetCategories(ctx context.Context) ([]sql.NullString, error) {
-	rows, err := q.db.QueryContext(ctx, getCategories)
+func (q *Queries) GetCategories(ctx context.Context, owner string) ([]sql.NullString, error) {
+	rows, err := q.db.QueryContext(ctx, getCategories, owner)
 	if err != nil {
 		return nil, err
 	}

@@ -162,7 +162,7 @@ func TestGetCategories(t *testing.T) {
 		createRandomEntry(t, user)
 	}
 
-	categories, err := testQueries.GetCategories(context.Background())
+	categories, err := testQueries.GetCategories(context.Background(), user.Username)
 	require.NoError(t, err)
 
 	for _, category := range categories {

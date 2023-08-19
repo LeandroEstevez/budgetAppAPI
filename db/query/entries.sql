@@ -21,7 +21,8 @@ FOR NO KEY UPDATE;
 
 -- name: GetCategories :many
 SELECT category FROM entries
-WHERE category != '' AND category IS NOT NULL;
+WHERE owner = $1 AND category != '' AND category IS NOT NULL
+GROUP BY category;
 
 -- name: UpdateEntry :one
 UPDATE entries
