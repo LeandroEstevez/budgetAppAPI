@@ -15,11 +15,11 @@ const (
 )
 
 type createEntryRequest struct {
-	Username       string `json:"username" binding:"required,min=6,max=10"`
-	Name    string    `json:"name" binding:"required,alphaunicode"`
-	DueDate string `json:"due_date" binding:"required" time_format:"2006-01-02"`
-	Amount  int64     `json:"amount" binding:"required,gt=0"`
-	Category       string `json:"category" binding:"max=10"`
+	Username string `json:"username" binding:"required,min=1,max=15"`
+	Name     string `json:"name" binding:"required,alpha"`
+	DueDate  string `json:"due_date" binding:"required" time_format:"2006-01-02"`
+	Amount   int64  `json:"amount" binding:"required,gt=0"`
+	Category string `json:"category" binding:"max=15"`
 }
 
 func (server *Server) addEntry(ctx *gin.Context) {
@@ -36,11 +36,11 @@ func (server *Server) addEntry(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	arg := db.AddEntryTxParams {
+	arg := db.AddEntryTxParams{
 		Username: authPayload.Username,
-		Name: req.Name,
-		DueDate: dueDate,
-		Amount: req.Amount,
+		Name:     req.Name,
+		DueDate:  dueDate,
+		Amount:   req.Amount,
 		Category: req.Category,
 	}
 
@@ -54,7 +54,7 @@ func (server *Server) addEntry(ctx *gin.Context) {
 }
 
 type deleteEntryRequest struct {
-	ID  int32     `uri:"id" binding:"required,gt=0"`
+	ID int32 `uri:"id" binding:"required,gt=0"`
 }
 
 func (server *Server) deleteEntry(ctx *gin.Context) {
@@ -65,9 +65,9 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	arg := db.DeleteEntryTxParams {
+	arg := db.DeleteEntryTxParams{
 		Username: authPayload.Username,
-		ID: req.ID,
+		ID:       req.ID,
 	}
 
 	deleteEntryResult, err := server.store.DeleteEntryTx(ctx, arg)
@@ -80,7 +80,7 @@ func (server *Server) deleteEntry(ctx *gin.Context) {
 }
 
 type getEntriesRequest struct {
-	Username       string `form:"username" binding:"required,min=6,max=10"`
+	Username string `form:"username" binding:"required,min=6,max=10"`
 }
 
 func (server *Server) getEntries(ctx *gin.Context) {
@@ -120,11 +120,11 @@ func (server *Server) getCategories(ctx *gin.Context) {
 
 type updateEntryRequest struct {
 	Username string `json:"username" binding:"required,min=6,max=10"`
-	ID int32 `json:"id" binding:"required,gt=0"`
-	Name    string    `json:"name" binding:"required,alphaunicode"`
-	DueDate string `json:"due_date" binding:"required" time_format:"2006-01-02"`
-	Amount int64 `json:"amount" binding:"required,gt=0"`
-	Category    string    `json:"Category" binding:"max=10"`
+	ID       int32  `json:"id" binding:"required,gt=0"`
+	Name     string `json:"name" binding:"required,alphaunicode"`
+	DueDate  string `json:"due_date" binding:"required" time_format:"2006-01-02"`
+	Amount   int64  `json:"amount" binding:"required,gt=0"`
+	Category string `json:"Category" binding:"max=10"`
 }
 
 func (server *Server) updateEntry(ctx *gin.Context) {
@@ -141,12 +141,12 @@ func (server *Server) updateEntry(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
-	arg := db.UpdateEntryTxParams {
+	arg := db.UpdateEntryTxParams{
 		Username: authPayload.Username,
-		ID: req.ID,
-		Name: req.Name,
-		DueDate: dueDate,
-		Amount: req.Amount,
+		ID:       req.ID,
+		Name:     req.Name,
+		DueDate:  dueDate,
+		Amount:   req.Amount,
 		Category: req.Category,
 	}
 
