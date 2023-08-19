@@ -45,13 +45,13 @@ jobs:
           docker tag budgetappapi:latest 807602152072.dkr.ecr.us-east-1.amazonaws.com/budgetappapi:latest
           docker push 807602152072.dkr.ecr.us-east-1.amazonaws.com/budgetappapi:latest
 
-      - name: Update kube config
-        run: aws eks update-kubeconfig --name budgetapp --region us-east-2
+      # - name: Update kube config
+      #   run: aws eks update-kubeconfig --name budgetapp --region us-east-2
 
-      - name: Deploy image to Amazon EKS
-        run: |
-          kubectl apply -f eks/aws-auth.yaml
-          kubectl apply -f eks/deployment.yaml
-          kubectl apply -f eks/service.yaml
-          kubectl apply -f eks/issuer.yaml
-          kubectl apply -f eks/ingress.yaml
+      # - name: Deploy image to Amazon EKS
+      #   run: |
+      #     kubectl apply -f eks/aws-auth.yaml
+      #     kubectl apply -f eks/deployment.yaml
+      #     kubectl apply -f eks/service.yaml
+      #     kubectl apply -f eks/issuer.yaml
+      #     kubectl apply -f eks/ingress.yaml
