@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 	"time"
 
@@ -14,7 +15,7 @@ const (
 	YYYYMMDD = "2006-01-02"
 )
 
-func GetMadeUpDate(madeUpDate string) (time.Time, error)  {
+func GetMadeUpDate(madeUpDate string) (time.Time, error) {
 	return time.Parse(YYYYMMDD, madeUpDate)
 }
 
@@ -23,14 +24,14 @@ func createRandomEntry(t *testing.T, user User) Entry {
 	require.NoError(t, err)
 	require.NotEmpty(t, date)
 
-	arg := CreateEntryParams {
-		Owner: user.Username,
-		Name: util.RandomString(4),
+	arg := CreateEntryParams{
+		Owner:   user.Username,
+		Name:    util.RandomString(4),
 		DueDate: date,
-		Amount: util.RandomMoney(),
-		Category: sql.NullString {
+		Amount:  util.RandomMoney(),
+		Category: sql.NullString{
 			String: util.RandomString(4),
-			Valid: true,
+			Valid:  true,
 		},
 	}
 
@@ -58,11 +59,13 @@ func TestUpdateEntry(t *testing.T) {
 	user := createRandomUser(t)
 	entry := createRandomEntry(t, user)
 
-	arg := UpdateEntryParams {
-		Owner: user.Username,
-		ID: entry.ID,
+	arg := UpdateEntryParams{
+		Owner:  user.Username,
+		ID:     entry.ID,
 		Amount: 10,
 	}
+
+	fmt.Println(entry.Name)
 
 	updatedEntry, err := testQueries.UpdateEntry(context.Background(), arg)
 	require.NoError(t, err)
@@ -82,9 +85,9 @@ func TestDeleteEntry(t *testing.T) {
 	err := testQueries.DeleteEntry(context.Background(), entry.ID)
 	require.NoError(t, err)
 
-	arg := GetEntryParams {
+	arg := GetEntryParams{
 		Owner: user.Username,
-		ID: entry.ID,
+		ID:    entry.ID,
 	}
 
 	deletedEntry, err := testQueries.GetEntry(context.Background(), arg)
@@ -106,9 +109,9 @@ func TestDeleteEntries(t *testing.T) {
 	require.NoError(t, err)
 
 	for i := 0; i < n; i++ {
-		getEntryParams := GetEntryParams {
+		getEntryParams := GetEntryParams{
 			Owner: user.Username,
-			ID: entries[i].ID,
+			ID:    entries[i].ID,
 		}
 		deletedEntry, err := testQueries.GetEntry(context.Background(), getEntryParams)
 		require.Error(t, err)
@@ -121,9 +124,9 @@ func TestGetEntry(t *testing.T) {
 	user := createRandomUser(t)
 	entry := createRandomEntry(t, user)
 
-	arg := GetEntryParams {
+	arg := GetEntryParams{
 		Owner: user.Username,
-		ID: entry.ID,
+		ID:    entry.ID,
 	}
 
 	retrievedEntry, err := testQueries.GetEntry(context.Background(), arg)
@@ -140,7 +143,7 @@ func TestGetEntry(t *testing.T) {
 func TestGetEntries(t *testing.T) {
 	user := createRandomUser(t)
 
-	for i := 0; i < 10; i ++ {
+	for i := 0; i < 10; i++ {
 		createRandomEntry(t, user)
 	}
 
@@ -155,7 +158,7 @@ func TestGetEntries(t *testing.T) {
 func TestGetCategories(t *testing.T) {
 	user := createRandomUser(t)
 
-	for i := 0; i < 10; i ++ {
+	for i := 0; i < 10; i++ {
 		createRandomEntry(t, user)
 	}
 
@@ -166,4 +169,3 @@ func TestGetCategories(t *testing.T) {
 		require.NotEmpty(t, category)
 	}
 }
-
