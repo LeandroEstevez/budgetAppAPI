@@ -6,6 +6,7 @@ package mock_sqlc
 
 import (
 	context "context"
+	sql "database/sql"
 	reflect "reflect"
 
 	db "github.com/LeandroEstevez/budgetAppAPI/db/sqlc"
@@ -152,10 +153,10 @@ func (mr *MockStoreMockRecorder) DeleteUserTx(arg0, arg1 interface{}) *gomock.Ca
 }
 
 // GetCategories mocks base method.
-func (m *MockStore) GetCategories(arg0 context.Context, arg1 string) ([]db.GetCategoriesRow, error) {
+func (m *MockStore) GetCategories(arg0 context.Context, arg1 string) ([]sql.NullString, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCategories", arg0, arg1)
-	ret0, _ := ret[0].([]db.GetCategoriesRow)
+	ret0, _ := ret[0].([]sql.NullString)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
