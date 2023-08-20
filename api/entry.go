@@ -104,8 +104,19 @@ func (server *Server) getEntries(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, entries)
 }
 
+type getCategoriesRequest struct {
+	Username string `form:"username" binding:"required,min=6,max=10"`
+}
+
 func (server *Server) getCategories(ctx *gin.Context) {
-	categories, err := server.store.GetCategories(ctx)
+	var req getCategoriesRequest
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	categories, err := server.store.GetCategories(ctx, authPayload.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))

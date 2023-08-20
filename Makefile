@@ -28,6 +28,7 @@ server:
 	go run main.go
 
 mock:
-	mockgen -package mockdb -destination db/mock/store.go github.com/LeandroEstevez/budgetAppAPI/db/sqlc Store
-
+	mockgen -destination db/mock/store.go github.com/LeandroEstevez/budgetAppAPI/db/sqlc Store
+	# mockgen -package mockdb -destination db/mock/store.go github.com/LeandroEstevez/budgetAppAPI/db/sqlc Store
+	
 .PHONY: network newPostgres postgres createdb dropdb migrateup migratedown sqlc server mock
