@@ -20,7 +20,7 @@ WHERE owner = $1 AND id = $2
 FOR NO KEY UPDATE;
 
 -- name: GetCategories :many
-SELECT category FROM entries
+SELECT category, COUNT(*) FROM entries
 WHERE owner = $1 AND category != '' AND category IS NOT NULL
 GROUP BY category;
 

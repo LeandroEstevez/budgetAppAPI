@@ -69,24 +69,29 @@ func (q *Queries) DeleteEntry(ctx context.Context, id int32) error {
 }
 
 const getCategories = `-- name: GetCategories :many
-SELECT category FROM entries
+SELECT category, COUNT(*) FROM entries
 WHERE owner = $1 AND category != '' AND category IS NOT NULL
 GROUP BY category
 `
 
-func (q *Queries) GetCategories(ctx context.Context, owner string) ([]sql.NullString, error) {
+type GetCategoriesRow struct {
+	Category sql.NullString `json:"category"`
+	Count    int64          `json:"count"`
+}
+
+func (q *Queries) GetCategories(ctx context.Context, owner string) ([]GetCategoriesRow, error) {
 	rows, err := q.db.QueryContext(ctx, getCategories, owner)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []sql.NullString{}
+	items := []GetCategoriesRow{}
 	for rows.Next() {
-		var category sql.NullString
-		if err := rows.Scan(&category); err != nil {
+		var i GetCategoriesRow
+		if err := rows.Scan(&i.Category, &i.Count); err != nil {
 			return nil, err
 		}
-		items = append(items, category)
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
