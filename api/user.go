@@ -132,8 +132,8 @@ type logInUserRequest struct {
 }
 
 type logInUserResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        userResponse `json:"user"`
+	// AccessToken string       `json:"access_token"`
+	User userResponse `json:"user"`
 }
 
 func (server *Server) logInUser(ctx *gin.Context) {
@@ -165,10 +165,19 @@ func (server *Server) logInUser(ctx *gin.Context) {
 		return
 	}
 
-	rsp := logInUserResponse{
-		AccessToken: accessToken,
-		User:        newUserResponse(user),
+	// rsp := logInUserResponse{
+	// 	// AccessToken: accessToken,
+	// 	User: newUserResponse(user),
+	// }
+
+	rsp := userResponse{
+		Username:      user.Username,
+		FullName:      user.FullName,
+		Email:         user.Email,
+		TotalExpenses: user.TotalExpenses,
+		AccessToken:   accessToken,
 	}
+
 	ctx.JSON(http.StatusOK, rsp)
 }
 
