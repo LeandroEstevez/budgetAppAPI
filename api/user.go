@@ -216,7 +216,7 @@ func (server *Server) deleteUser(ctx *gin.Context) {
 }
 
 type forgotPasswordRequest struct {
-	Username string `uri:"username" binding:"required,min=6,max=10"`
+	Username string `json:"username" binding:"required,min=6,max=10"`
 }
 
 func (server *Server) forgotPassword(ctx *gin.Context) {
@@ -268,7 +268,7 @@ func (server *Server) forgotPassword(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, "You will receive a reset email if user with that email exist")
+	ctx.JSON(http.StatusOK, "You will receive a reset email if username exists")
 }
 
 type resetPasswordRequest struct {

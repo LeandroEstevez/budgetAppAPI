@@ -12,10 +12,10 @@ import (
 
 // Server serves HTTP requests
 type Server struct {
-	config util.Config
-	store db.Store
+	config     util.Config
+	store      db.Store
 	tokenMaker token.Maker
-	router *gin.Engine
+	router     *gin.Engine
 }
 
 // Creates a new HTTP server and setup routing
@@ -25,9 +25,9 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
 
-	server := &Server {
-		config: config,
-		store: store,
+	server := &Server{
+		config:     config,
+		store:      store,
 		tokenMaker: tokenMaker,
 	}
 
@@ -45,7 +45,7 @@ func (server *Server) setUpRouter() {
 
 	router.POST("/user", server.createUser)
 	router.POST("/user/login", server.logInUser)
-	router.POST("/forgotpassword", server.forgotPassword)
+	router.POST("/forgotpassword/:username", server.forgotPassword)
 
 	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 	authRoutes.POST("/entry", server.addEntry)
@@ -67,5 +67,5 @@ func (server *Server) Start(address string) error {
 }
 
 func errorResponse(err error) gin.H {
-	return gin.H {"error": err.Error()}
+	return gin.H{"error": err.Error()}
 }
