@@ -41,6 +41,7 @@ func (server *Server) setUpRouter() {
 	corsConfig.AllowOrigins = []string{"*"}
 	corsConfig.AllowHeaders = []string{"*"}
 	corsConfig.AllowCredentials = true
+	corsConfig.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 	router.Use(cors.New(corsConfig))
 
 	router.POST("/user", server.createUser)
