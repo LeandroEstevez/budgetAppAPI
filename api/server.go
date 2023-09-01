@@ -44,9 +44,9 @@ func (server *Server) setUpRouter() {
 	corsConfig.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
 	router.Use(cors.New(corsConfig))
 
+	router.POST("/forgotpassword", server.forgotPassword)
 	router.POST("/user", server.createUser)
 	router.POST("/user/login", server.logInUser)
-	router.POST("/forgotpassword", server.forgotPassword)
 
 	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 	authRoutes.POST("/entry", server.addEntry)
