@@ -18,6 +18,22 @@ type Server struct {
 	router     *gin.Engine
 }
 
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
 // Creates a new HTTP server and setup routing
 func NewServer(config util.Config, store db.Store) (*Server, error) {
 	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
@@ -42,7 +58,8 @@ func (server *Server) setUpRouter() {
 	corsConfig.AllowHeaders = []string{"*"}
 	corsConfig.AllowCredentials = true
 	corsConfig.AllowMethods = []string{"GET", "POST", "PATCH", "DELETE"}
-	router.Use(cors.New(corsConfig))
+	// router.Use(cors.New(corsConfig))
+	router.Use(CORSMiddleware())
 
 	router.POST("/forgotpassword", server.forgotPassword)
 	router.POST("/user", server.createUser)
