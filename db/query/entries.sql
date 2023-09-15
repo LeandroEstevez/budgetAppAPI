@@ -37,3 +37,8 @@ WHERE id = $1;
 -- name: DeleteEntries :exec
 DELETE FROM entries
 WHERE owner = $1;
+
+-- name: UpdateEntriesOwner :exec
+UPDATE entries
+SET owner = $2
+WHERE owner = $1;

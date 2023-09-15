@@ -39,3 +39,9 @@ WHERE username = $1;
 -- name: DeleteUser :exec
 DELETE FROM users
 WHERE username = $1;
+
+-- name: UpdateUserInfo :one
+UPDATE users
+SET username = $2, full_name = $3, email = $4
+WHERE username = $1
+RETURNING *;

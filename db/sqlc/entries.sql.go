@@ -181,6 +181,22 @@ func (q *Queries) GetEntryForUpdate(ctx context.Context, arg GetEntryForUpdatePa
 	return i, err
 }
 
+const updateEntriesOwner = `-- name: UpdateEntriesOwner :exec
+UPDATE entries
+SET owner = $2
+WHERE owner = $1
+`
+
+type UpdateEntriesOwnerParams struct {
+	Owner   string `json:"owner"`
+	Owner_2 string `json:"owner_2"`
+}
+
+func (q *Queries) UpdateEntriesOwner(ctx context.Context, arg UpdateEntriesOwnerParams) error {
+	_, err := q.db.ExecContext(ctx, updateEntriesOwner, arg.Owner, arg.Owner_2)
+	return err
+}
+
 const updateEntry = `-- name: UpdateEntry :one
 UPDATE entries
 SET name = $3, due_date = $4, amount = $5, category = $6

@@ -255,9 +255,10 @@ func (server *Server) forgotPassword(ctx *gin.Context) {
 
 	// ? Send Email
 	emailData := util.EmailData{
-		URL:       "http://localhost:3000" + "/resetpassword/" + resetToken,
+		URL:       "http://localhost:3001" + "/resetpassword/" + resetToken,
 		FirstName: firstName,
 		Subject:   "Your password reset token (valid for 15min)",
+		ToEmail:   user.Email,
 	}
 
 	fmt.Println("Trying to send the email")
@@ -313,4 +314,33 @@ func (server *Server) resetPassword(ctx *gin.Context) {
 	fmt.Println("changed the password")
 
 	ctx.JSON(http.StatusOK, "Password data updated successfully")
+}
+
+type updateAccountRequest struct {
+	OrigUsername string `json:"origusername" binding:"required,alphanum,min=1,max=15"`
+	Username     string `json:"username" binding:"required,alphanum,min=1,max=15"`
+	FullName     string `json:"full_name" binding:"required"`
+	Email        string `json:"email" binding:"required,email"`
+}
+
+func (server *Server) updateAccount(ctx *gin.Context) {
+	var req updateAccountRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	arg := db.UpdateAccountTxParams{
+		OrigUsername: req.OrigUsername,
+		Username:     req.Username,
+		FullName:     req.FullName,
+		Email:        req.Email,
+	}
+	updateUserResult, err := server.store.UpdateAccountTx(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updateUserResult.User)
 }

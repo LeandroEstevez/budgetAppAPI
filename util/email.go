@@ -17,6 +17,7 @@ type EmailData struct {
 	URL       string
 	FirstName string
 	Subject   string
+	ToEmail   string
 }
 
 // ? Email template parser
@@ -46,9 +47,9 @@ func SendEmail(data *EmailData, templateName string) error {
 
 	// Sender data.
 	from := "leandroest111298@gmail.com"
-	smtpPass := "vwvglkiulqhhqvaz"
+	smtpPass := "iptidjnbeilmnrgn"
 	smtpUser := "leandroest111298@gmail.com"
-	to := "leoest.dev@gmail.com"
+	to := data.ToEmail
 	smtpHost := "smtp.gmail.com"
 	smtpPort := 587
 
@@ -59,6 +60,7 @@ func SendEmail(data *EmailData, templateName string) error {
 		log.Fatal("Could not parse template", err)
 	}
 
+	fmt.Println(to)
 	fmt.Println("Parsed the template")
 
 	template = template.Lookup(templateName)

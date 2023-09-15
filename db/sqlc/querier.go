@@ -24,8 +24,10 @@ type Querier interface {
 	GetUserForUpdate(ctx context.Context, username string) (User, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	ResetPassword(ctx context.Context, arg ResetPasswordParams) error
+	UpdateEntriesOwner(ctx context.Context, arg UpdateEntriesOwnerParams) error
 	UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

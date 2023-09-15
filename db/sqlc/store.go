@@ -16,6 +16,7 @@ type Store interface {
 	DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParams) (DeleteEntryTxResult, error)
 	UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParams) (UpdateEntryTxResult, error)
 	DeleteUserTx(ctx context.Context, username string) error
+	UpdateAccountTx(ctx context.Context, arg UpdateAccountTxParams) (UpdateAccountTxResult, error)
 }
 
 // SQLStore provides all functions to execute SQL queries and transactions
@@ -26,8 +27,8 @@ type SQLStore struct {
 
 // Creates a new store
 func NewStore(db *sql.DB) Store {
-	return &SQLStore {
-		db: db,
+	return &SQLStore{
+		db:      db,
 		Queries: New(db),
 	}
 }
@@ -41,6 +42,7 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 
 	q := New(tx)
 	err = fn(q)
+	fmt.Print(err)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
 			return fmt.Errorf("tx err: %v, rb err: %v", err, rbErr)
@@ -52,17 +54,17 @@ func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) erro
 
 // Contains the input parameter of the add entry transaction
 type AddEntryTxParams struct {
-	Username string `json:"username"`
-	Name string `json:"name"`
-	DueDate time.Time `json:"due_date"`
-	Amount int64 `json:"amount"`
-	Category string `json:"category"`
+	Username string    `json:"username"`
+	Name     string    `json:"name"`
+	DueDate  time.Time `json:"due_date"`
+	Amount   int64     `json:"amount"`
+	Category string    `json:"category"`
 }
 
 // Contains the result of the Add entry transaction
 type AddEntryTxResult struct {
 	Entry Entry `json:"entry"`
-	User User `json:"user"`
+	User  User  `json:"user"`
 }
 
 // Adds an entry and updates the total expense in the user
@@ -75,11 +77,11 @@ func (store *SQLStore) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (Ad
 			return err
 		}
 
-		createEntryParams := CreateEntryParams {
-			Owner: arg.Username,
-			Name: arg.Name,
-			DueDate: arg.DueDate,
-			Amount: arg.Amount,
+		createEntryParams := CreateEntryParams{
+			Owner:    arg.Username,
+			Name:     arg.Name,
+			DueDate:  arg.DueDate,
+			Amount:   arg.Amount,
 			Category: sql.NullString{String: arg.Category, Valid: true},
 		}
 		result.Entry, err = q.CreateEntry(ctx, createEntryParams)
@@ -91,8 +93,8 @@ func (store *SQLStore) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (Ad
 		entryAmount := result.Entry.Amount
 		totalExpenses = totalExpenses + entryAmount
 
-		updatedUserParams := UpdateUserParams {
-			Username: arg.Username,
+		updatedUserParams := UpdateUserParams{
+			Username:      arg.Username,
 			TotalExpenses: totalExpenses,
 		}
 		result.User, err = q.UpdateUser(ctx, updatedUserParams)
@@ -108,18 +110,18 @@ func (store *SQLStore) AddEntryTx(ctx context.Context, arg AddEntryTxParams) (Ad
 
 // Contains the input parameter of the update entry transaction
 type UpdateEntryTxParams struct {
-	Username string `json:"username"`
-	ID int32 `json:"id"`
-	Name string `json:"name"`
-	DueDate time.Time `json:"due_date"`
-	Amount int64 `json:"amount"`
-	Category string `json:"category"`
+	Username string    `json:"username"`
+	ID       int32     `json:"id"`
+	Name     string    `json:"name"`
+	DueDate  time.Time `json:"due_date"`
+	Amount   int64     `json:"amount"`
+	Category string    `json:"category"`
 }
 
 // Contains the result of the update entry transaction
 type UpdateEntryTxResult struct {
 	Entry Entry `json:"entry"`
-	User User `json:"user"`
+	User  User  `json:"user"`
 }
 
 // Updates the amount of an entry and updates the total expense in the user
@@ -132,9 +134,9 @@ func (store *SQLStore) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParam
 			return err
 		}
 
-		getEntryParams := GetEntryForUpdateParams {
+		getEntryParams := GetEntryForUpdateParams{
 			Owner: arg.Username,
-			ID: arg.ID,
+			ID:    arg.ID,
 		}
 		entry, err := q.GetEntryForUpdate(ctx, getEntryParams)
 		if err != nil {
@@ -147,8 +149,8 @@ func (store *SQLStore) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParam
 		changeInAmount := arg.Amount - entryAmount
 		totalExpenses = totalExpenses + changeInAmount
 
-		updatedUserParams := UpdateUserParams {
-			Username: arg.Username,
+		updatedUserParams := UpdateUserParams{
+			Username:      arg.Username,
 			TotalExpenses: totalExpenses,
 		}
 		result.User, err = q.UpdateUser(ctx, updatedUserParams)
@@ -158,23 +160,23 @@ func (store *SQLStore) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParam
 
 		var categoryValue sql.NullString
 		if arg.Category == "" {
-			categoryValue = sql.NullString {
+			categoryValue = sql.NullString{
 				String: "",
-				Valid: false,
+				Valid:  false,
 			}
 		} else {
-			categoryValue = sql.NullString {
+			categoryValue = sql.NullString{
 				String: arg.Category,
-				Valid: true,
+				Valid:  true,
 			}
 		}
 
-		updateEntryParams := UpdateEntryParams {
-			Owner: arg.Username,
-			ID: arg.ID,
-			Name: arg.Name,
-			DueDate: arg.DueDate,
-			Amount: arg.Amount,
+		updateEntryParams := UpdateEntryParams{
+			Owner:    arg.Username,
+			ID:       arg.ID,
+			Name:     arg.Name,
+			DueDate:  arg.DueDate,
+			Amount:   arg.Amount,
 			Category: categoryValue,
 		}
 
@@ -192,7 +194,7 @@ func (store *SQLStore) UpdateEntryTx(ctx context.Context, arg UpdateEntryTxParam
 // Contains the input parameter of the delete entry transaction
 type DeleteEntryTxParams struct {
 	Username string `json:"username"`
-	ID int32 `json:"id"`
+	ID       int32  `json:"id"`
 }
 
 // Contains the result of the delete entry transaction
@@ -210,9 +212,9 @@ func (store *SQLStore) DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParam
 			return err
 		}
 
-		getEntryParams := GetEntryParams {
+		getEntryParams := GetEntryParams{
 			Owner: arg.Username,
-			ID: arg.ID,
+			ID:    arg.ID,
 		}
 		entry, err := q.GetEntry(ctx, getEntryParams)
 		if err != nil {
@@ -228,8 +230,8 @@ func (store *SQLStore) DeleteEntryTx(ctx context.Context, arg DeleteEntryTxParam
 			return err
 		}
 
-		updatedUserParams := UpdateUserParams {
-			Username: arg.Username,
+		updatedUserParams := UpdateUserParams{
+			Username:      arg.Username,
 			TotalExpenses: totalExpenses,
 		}
 		result.User, err = q.UpdateUser(ctx, updatedUserParams)
@@ -260,4 +262,50 @@ func (store *SQLStore) DeleteUserTx(ctx context.Context, username string) error 
 	})
 
 	return err
+}
+
+// Contains the input parameter of the update entry transaction
+type UpdateAccountTxParams struct {
+	OrigUsername string `json:"origusername"`
+	Username     string `json:"username"`
+	FullName     string `json:"full_name"`
+	Email        string `json:"email"`
+}
+
+// Contains the result of the update entry transaction
+type UpdateAccountTxResult struct {
+	User User `json:"user"`
+}
+
+// Updates the amount of an entry and updates the total expense in the user
+func (store *SQLStore) UpdateAccountTx(ctx context.Context, arg UpdateAccountTxParams) (UpdateAccountTxResult, error) {
+	var result UpdateAccountTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		updateEntryParams := UpdateEntriesOwnerParams{
+			Owner:   arg.OrigUsername,
+			Owner_2: arg.Username,
+		}
+		err = q.UpdateEntriesOwner(ctx, updateEntryParams)
+		if err != nil {
+			return err
+		}
+
+		updatedUserParams := UpdateUserInfoParams{
+			Username:   arg.OrigUsername,
+			Username_2: arg.Username,
+			FullName:   arg.FullName,
+			Email:      arg.Email,
+		}
+		result.User, err = q.UpdateUserInfo(ctx, updatedUserParams)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return result, err
 }

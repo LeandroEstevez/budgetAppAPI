@@ -73,6 +73,7 @@ func (server *Server) setUpRouter() {
 	authRoutes.GET("/categories", server.getCategories)
 	authRoutes.DELETE("/deleteUser/:username", server.deleteUser)
 	authRoutes.PATCH("/resetPassword", server.resetPassword)
+	authRoutes.PATCH("/updateAccount", server.updateAccount)
 
 	authRoutes.GET("/user/:username", server.getUser)
 

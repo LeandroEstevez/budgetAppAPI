@@ -1,4 +1,4 @@
-DB_URL=postgresql://root:budgetapi@budgetapi.c7g4jokpc384.us-east-1.rds.amazonaws.com:5432/budgetapi
+DB_URL=postgresql://root:budgetappdb@budgetappdb.cviqqzopm7zr.us-east-2.rds.amazonaws.com:5432/budgetappdb
 
 newPostgres:
 	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetapidb -d postgres:latest
