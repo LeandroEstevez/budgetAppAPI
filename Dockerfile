@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.19.1-alpine AS builder
+FROM --platform=linux/amd64 golang:1.19.1-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN go build -o main main.go

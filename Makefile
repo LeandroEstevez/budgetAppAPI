@@ -1,4 +1,5 @@
 DB_URL=postgresql://root:budgetappdb@budgetappdb.cviqqzopm7zr.us-east-2.rds.amazonaws.com:5432/budgetappdb
+DB_URL_local=postgresql://root:budgetapidb@localhost:5432/budgetapidb?sslmode=disable
 
 newPostgres:
 	docker run --name postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=budgetapidb -d postgres:latest
@@ -13,7 +14,7 @@ dropdb:
 	docker exec -it postgres dropdb budgetapidb
 
 migrateup:
-	migrate -path db/migration -database "$(DB_URL)" -verbose up 1
+	migrate -path db/migration -database "$(DB_URL_local)" -verbose up 1
 
 migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
